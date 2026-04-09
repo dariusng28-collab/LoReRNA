@@ -1,0 +1,20 @@
+name: longread-rnaseq
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - pip
+  - samtools
+  - gffread
+  - isoquant
+  - oarfish
+  - r-base
+  - r-optparse
+  - r-readr
+  - r-dplyr
+  - r-tibble
+  - r-purrr
+  - r-arrow
+  - bioconductor-fishpond
+  - bioconductor-summarizedexperiment
