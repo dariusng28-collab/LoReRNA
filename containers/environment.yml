@@ -5,16 +5,20 @@ channels:
 dependencies:
   - python=3.11
   - pip
-  - samtools
-  - gffread
-  - isoquant
-  - oarfish
-  - r-base
-  - r-optparse
-  - r-readr
-  - r-dplyr
-  - r-tibble
-  - r-purrr
-  - r-arrow
-  - bioconductor-fishpond
-  - bioconductor-summarizedexperiment
+  # Alignment / BAM handling
+  - samtools=1.21
+  # GTF utilities
+  - gffread=0.12.7
+  - gffcompare=0.12.6
+  # Transcript assembly
+  - isoquant=3.4.2
+  # Transcript quantification
+  - oarfish=0.6.5
+  # R base
+  - r-base=4.4.2
+  # R data / IO — r-optparse, r-readr, r-purrr, r-tibble removed (unused)
+  - r-data.table=1.16.2
+  - r-arrow=17.0.0
+  # Bioconductor differential analysis
+  - bioconductor-fishpond=2.10.0
+  - bioconductor-summarizedexperiment=1.34.0

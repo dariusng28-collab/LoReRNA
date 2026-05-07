@@ -1,51 +1,122 @@
+// ============================================================
+// ISOQUANT
+//
+// Replicates the isoquant bash script exactly:
+//   isoquant \
+//     --reference  <genome.fa>          (REF)
+//     --bam        <sample.sorted.bam>  (sorted_bam from SAMTOOLS_SORT_INDEX)
+//     --genedb     <annotation.gtf|annotation.gtf.db>
+//     --sqanti_output
+//     --data_type  nanopore
+//     --prefix     <sample_id>
+//     -o           <sample_id>
+//
+// IMPORTANT:
+//   IsoQuant's --genedb option accepts either a GTF/GFF annotation or a
+//   pre-built gffutils database. This module receives whichever one the user
+//   chose via --reference_gtf or --reference_db.
+//
+// Output layout:
+//   With --prefix <sample_id> and -o <sample_id>, IsoQuant v3 writes all
+//   results to:
+//     <sample_id>/<sample_id>.transcript_models.gtf
+//     <sample_id>/<sample_id>.transcript_counts.tsv
+//     etc.
+//   The 'OUT/OUT.*' layout only applies when --prefix is omitted.
+//   publishDir then copies the whole directory to results/03_isoquant/.
+//
+//   Key emitted files for downstream steps:
+//     *.transcript_counts.tsv   — transcript-level counts
+//     *.gene_counts.tsv         — gene-level counts
+//     *.read_assignments.tsv.gz — per-read transcript assignments
+//
+// Changelog v1.1.1 (fix #1 — critical):
+//   Corrected transcript_models.gtf path from
+//     ${sample_id}/OUT/OUT.transcript_models.gtf   (default --prefix layout)
+//   to
+//     ${sample_id}/${sample_id}.transcript_models.gtf  (--prefix layout)
+//   The old path caused every ISOQUANT job to fail at the cp step.
+// ============================================================
+
 process ISOQUANT {
-    label 'process_high'
-    publishDir "${params.outdir}/02_isoquant", mode: params.publish_mode
+
+    tag "${meta.id}"
+    label 'process_very_high'   // cpus=16, memory=64 GB — matches h_vmem=64G in bash
+
+    publishDir "${params.outdir}/03_isoquant/${meta.id}", mode: params.publish_mode,
+        saveAs: { filename -> filename.tokenize('/')[-1] }   // flatten subdir on publish
 
     input:
-    path miser_bams
-    path reference_fasta
-    path reference_gtf
+    tuple val(meta), path(sorted_bam), path(bai)   // from SAMTOOLS_SORT_INDEX
+    path  genome_fasta                              // reference_fasta param
+    path  isoquant_annotation                       // reference_gtf or reference_db param
 
     output:
-    path("${params.isoquant_prefix}.transcript_models.gtf"), emit: isoquant_gtf
-    path("combined_transcript_counts.tsv"), emit: isoquant_counts
-    path("${params.isoquant_prefix}.exon_grouped_counts.tsv"), optional: true, emit: isoquant_exon_counts
+    tuple val(meta), path("${meta.id}/*.transcript_counts.tsv"),    emit: transcript_counts
+    tuple val(meta), path("${meta.id}/*.gene_counts.tsv"),          emit: gene_counts
+    tuple val(meta), path("${meta.id}/*.read_assignments.tsv.gz"),  emit: read_assignments
+    tuple val(meta), path("${meta.id}.transcript_models.gtf"),      emit: transcript_model_gtf
+    tuple val(meta), path("${meta.id}/"),                           emit: outdir
 
     script:
-    def bamArgs = miser_bams.collect { it.getName() }.join(' ')
-    def extra = params.isoquant_args ?: ''
+    def sample_id  = meta.id
+    def extra_args = params.isoquant_args ?: ''
+    def complete_genedb_arg = params.isoquant_complete_genedb ? '--complete_genedb' : ''
     """
-    ${params.isoquant_exe} \
-      --reference ${reference_fasta} \
-      --genedb ${reference_gtf} \
-      --bam ${bamArgs} \
-      --data_type ${params.isoquant_data_type} \
-      --threads ${task.cpus} \
-      --prefix ${params.isoquant_prefix} \
-      --output isoquant_run \
-      ${extra}
+    set -euo pipefail
 
-    cp isoquant_run/${params.isoquant_prefix}.transcript_models.gtf ./
-    cp isoquant_run/combined_transcript_counts.tsv ./
+    echo "========================================"
+    echo " IsoQuant: ${sample_id}"
+    echo " BAM      : ${sorted_bam}"
+    echo " Genome   : ${genome_fasta}"
+    echo " Annotation: ${isoquant_annotation}"
+    echo " Threads  : ${task.cpus}"
+    echo "========================================"
 
-    if [[ -f isoquant_run/${params.isoquant_prefix}.exon_grouped_counts.tsv ]]; then
-      cp isoquant_run/${params.isoquant_prefix}.exon_grouped_counts.tsv ./
+    # Validate sorted BAM and its index are present
+    if [ ! -f "${sorted_bam}" ]; then
+        echo "ERROR: sorted BAM not found: ${sorted_bam}"
+        exit 1
     fi
-    """
+    if [ ! -f "${bai}" ]; then
+        echo "ERROR: BAM index not found: ${bai}"
+        exit 1
+    fi
 
-    stub:
-    """
-    cat > ${params.isoquant_prefix}.transcript_models.gtf <<'EOF'
-    chr1\tIsoQuant\ttranscript\t1\t100\t.\t+\t.\tgene_id "GENE1"; transcript_id "TX1";
-    EOF
-    cat > combined_transcript_counts.tsv <<'EOF'
-    feature_id\tsampleA\tsampleB
-    TX1\t10\t12
-    EOF
-    cat > ${params.isoquant_prefix}.exon_grouped_counts.tsv <<'EOF'
-    feature_id\tsampleA\tsampleB
-    exon1\t5\t6
-    EOF
+    # Validate BAM integrity
+    echo "Checking BAM integrity..."
+    samtools quickcheck "${sorted_bam}"
+
+    # --prefix ${sample_id} sets the output file basename.
+    # -o ${sample_id}        sets the output directory.
+    # With both set, IsoQuant v3 writes:
+    #   ${sample_id}/${sample_id}.transcript_models.gtf
+    #   ${sample_id}/${sample_id}.transcript_counts.tsv
+    #   etc.
+    # Do NOT omit --prefix — the default 'OUT/OUT.*' layout is not used here.
+    ${params.isoquant_exe} \\
+        --reference  "${genome_fasta}" \\
+        --bam        "${sorted_bam}" \\
+        --genedb     "${isoquant_annotation}" \\
+        ${complete_genedb_arg} \\
+        --sqanti_output \\
+        --data_type  ${params.isoquant_data_type} \\
+        --prefix     ${sample_id} \\
+        --threads    ${task.cpus} \\
+        -o           ${sample_id} \\
+        ${extra_args}
+
+    # With --prefix, IsoQuant writes to ${sample_id}/${sample_id}.transcript_models.gtf
+    # (not OUT/OUT.transcript_models.gtf — that is the no-prefix default layout).
+    if [ ! -f "${sample_id}/${sample_id}.transcript_models.gtf" ]; then
+        echo "ERROR: IsoQuant transcript model GTF not found."
+        echo "Expected: ${sample_id}/${sample_id}.transcript_models.gtf"
+        echo "Output directory contents:"
+        ls -lh "${sample_id}/" || true
+        exit 1
+    fi
+    cp "${sample_id}/${sample_id}.transcript_models.gtf" "${sample_id}.transcript_models.gtf"
+
+    echo "SUCCESS: IsoQuant finished for ${sample_id}"
     """
 }
