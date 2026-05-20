@@ -48,7 +48,8 @@
 process SWISH {
 
     tag "all_samples"
-    label 'process_high'   
+    label 'process_high'   // nextflow.config: 8 CPUs, 32 GB | UCL: 4 CPUs, 32 GB
+
     publishDir "${params.outdir}/06_swish", mode: params.publish_mode
 
     input:

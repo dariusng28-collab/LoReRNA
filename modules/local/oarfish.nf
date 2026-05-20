@@ -53,8 +53,7 @@
 process OARFISH {
 
     tag "${meta.id}"
-    label 'process_very_high'   // cpus=16, memory=64 GB, time=72 h
-                                 // matches --threads 16 and h_vmem=64G in bash
+    label 'process_very_high'   // cpus=4, memory=64 GB, time=72 h — see conf/ucl_sge.config
 
     publishDir "${params.outdir}/05_oarfish/${meta.id}", mode: params.publish_mode
 

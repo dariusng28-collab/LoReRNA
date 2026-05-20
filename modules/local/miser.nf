@@ -96,7 +96,7 @@ process MISER {
     # Flags from params.miser_args (nextflow.config). -c from task.cpus (= 4).
     # Micro-exon BED written to NF work dir (not scratch) for direct staging.
     #
-    # set +e / set -e: suspend errexit around MisER so miser_exit=$? is
+    # set +e / set -e: suspend errexit around MisER so miser_exit=\$? is
     # reachable. Without this, set -e aborts the script before the
     # assignment and step 5 is dead code (fix #2).
     echo "[4/7] Running MisER"

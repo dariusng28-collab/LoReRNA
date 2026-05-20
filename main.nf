@@ -18,6 +18,8 @@ nextflow.enable.dsl = 2
 // ============================================================
 
 include { MISER                     } from './modules/local/miser'
+include { MISER_QC                  } from './modules/local/miser_qc'
+include { MISER_QC_MERGE            } from './modules/local/miser_qc_merge'
 include { SAMTOOLS_SORT_INDEX       } from './modules/local/samtools_sort_index'
 include { ISOQUANT                  } from './modules/local/isoquant'
 include { PREPARE_OARFISH_REFERENCE } from './modules/local/prepare_oarfish_ref'
@@ -42,6 +44,19 @@ workflow LORERNA {
         ch_samplesheet,
         ch_genome_fasta,
         ch_annotation_bed
+    )
+
+    MISER_QC (
+        MISER.out.micro_exon_bed
+    )
+
+    // Collect all per-sample metrics and merge into one cohort TSV
+    ch_miser_metrics = MISER_QC.out.metrics
+        .map { meta, tsv -> tsv }
+        .collect()
+
+    MISER_QC_MERGE (
+        ch_miser_metrics
     )
 
     SAMTOOLS_SORT_INDEX (
@@ -129,6 +144,10 @@ workflow LORERNA {
 
     emit:
     miser_bam         = MISER.out.bam
+    miser_qc_tsv      = MISER_QC.out.rescued_exons_tsv
+    miser_qc_bed      = MISER_QC.out.rescued_exons_bed
+    miser_qc_metrics  = MISER_QC.out.metrics
+    miser_qc_merged   = MISER_QC_MERGE.out.merged_metrics
     sorted_bam        = SAMTOOLS_SORT_INDEX.out.bam_bai
     transcript_models = ISOQUANT.out.transcript_model_gtf
     transcript_counts = ISOQUANT.out.transcript_counts
@@ -160,19 +179,19 @@ workflow {
     }
 
     // ── Samplesheet parsing ───────────────────────────────────────────────
-    // Exactly three columns: sample_name, condition, bam.
+    // Required columns: sample_name (or legacy sample), condition, bam.
     // Extra columns are silently ignored.
     ch_samplesheet = Channel
         .fromPath(params.samplesheet, checkIfExists: true)
         .splitCsv(header: true)
         .map { row ->
 
-            def sample_id = row['sample_name']
+            def sample_id = row['sample_name'] ?: row['sample']
             def condition = row['condition']
             def bam_path  = row['bam']
 
             if (!sample_id) {
-                error "Samplesheet is missing 'sample_name' column.\nFound: ${row.keySet().join(', ')}"
+                error "Samplesheet is missing 'sample_name' column (or legacy 'sample').\nFound: ${row.keySet().join(', ')}"
             }
             if (!condition) {
                 error "Samplesheet row for '${sample_id}' is missing 'condition' column.\nFound: ${row.keySet().join(', ')}"

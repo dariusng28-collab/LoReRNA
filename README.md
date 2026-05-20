@@ -31,6 +31,16 @@ Genome-aligned BAMs (per sample)
   └──────┬──────┘
          │
          ▼
+  ┌──────────────────┐
+  │     MISER_QC     │  Per-sample: unique exon catalog, BED track, metrics
+  └────────┬─────────┘
+           │ (all samples collected)
+           ▼
+  ┌──────────────────┐
+  │  MISER_QC_MERGE  │  Cohort-level merged metrics TSV
+  └────────┬─────────┘
+         │
+         ▼
   ┌─────────────────────┐
   │  SAMtools sort+index │  Coordinate-sort for IsoQuant input
   └──────────┬──────────┘
@@ -280,6 +290,13 @@ results/
 │       ├── <sample>.miser.bam
 │       ├── <sample>.missed_small.bed
 │       └── <sample>.miser.log
+│
+├── 01_miser_qc/
+│   ├── all_samples_rescue_metrics.tsv        ← cohort-level merged summary
+│   └── <sample>/
+│       ├── <sample>.rescued_microexons.tsv   ← unique rescued exon catalog
+│       ├── <sample>.rescued_microexons.bed   ← load directly into IGV
+│       └── <sample>.rescue_metrics.tsv       ← per-sample QC metrics
 │
 ├── 02_sorted_bam/
 │   └── <sample>/

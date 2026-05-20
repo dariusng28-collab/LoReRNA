@@ -55,7 +55,7 @@
 process PREPARE_OARFISH_REFERENCE {
 
     tag "all_samples"
-    label 'process_high'   
+    label 'process_high'   // nextflow.config: 8 CPUs, 32 GB | UCL: 4 CPUs, 32 GB
 
     publishDir "${params.outdir}/04_oarfish_reference", mode: params.publish_mode
 

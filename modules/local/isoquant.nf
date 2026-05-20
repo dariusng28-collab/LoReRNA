@@ -41,7 +41,7 @@
 process ISOQUANT {
 
     tag "${meta.id}"
-    label 'process_very_high'   // cpus=16, memory=64 GB — matches h_vmem=64G in bash
+    label 'process_very_high'   // cpus=4, memory=64 GB — see conf/ucl_sge.config
 
     publishDir "${params.outdir}/03_isoquant/${meta.id}", mode: params.publish_mode,
         saveAs: { filename -> filename.tokenize('/')[-1] }   // flatten subdir on publish
