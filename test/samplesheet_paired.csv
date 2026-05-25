@@ -1,0 +1,5 @@
+sample_name,condition,bam,pair
+Control_donor1,Control,/path/to/your/Control_donor1.sorted.bam,1
+KD_donor1,KD,/path/to/your/KD_donor1.sorted.bam,1
+Control_donor2,Control,/path/to/your/Control_donor2.sorted.bam,2
+KD_donor2,KD,/path/to/your/KD_donor2.sorted.bam,2

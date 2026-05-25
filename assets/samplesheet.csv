@@ -1,3 +1,0 @@
-sample,condition,bam
-sampleA,control,/absolute/path/to/sampleA.sorted.bam
-sampleB,treated,/absolute/path/to/sampleB.sorted.bam
