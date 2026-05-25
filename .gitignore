@@ -1,0 +1,64 @@
+# Nextflow execution artefacts — never commit these
+.nextflow/
+.nextflow.log*
+work/
+.nf-test/
+.nf-test.log
+
+# Pipeline outputs — results live on SAN, not in git
+results/
+test_results/
+*_results/
+*_validation/
+
+# Singularity images — large binaries, pulled at runtime from Docker Hub
+*.sif
+*.img
+singularity_cache/
+
+# Conda environments — rebuilt from environment.yml at runtime
+.conda/
+conda-envs/
+
+# Nextflow reports — generated at runtime
+pipeline_info/
+timeline.html
+report.html
+dag.html
+trace.txt
+
+# Editor and OS noise
+.DS_Store
+.idea/
+*.swp
+*.swo
+*~
+__pycache__/
+*.pyc
+.Rhistory
+.RData
+
+# Secrets — never commit credentials or API keys
+*.pem
+*.key
+secrets/
+
+# Large data files — references and BAMs live on SAN
+*.bam
+*.bai
+*.fa
+*.fasta
+*.fa.gz
+*.fasta.gz
+*.gtf
+*.gff
+*.gff3
+*.bed
+*.bed12
+*.db
+*.vcf
+*.vcf.gz
+
+# Temporary validation samplesheets with real paths
+# (template versions with FILL_IN_* are fine to commit)
+test/samplesheet_*_real.csv

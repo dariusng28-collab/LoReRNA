@@ -1,0 +1,35 @@
+name: longread-rnaseq
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - pip
+  # ── Alignment / BAM handling ──────────────────────────────────────────────
+  - samtools=1.21
+  - procps-ng
+  # ── GTF utilities ─────────────────────────────────────────────────────────
+  - gffread=0.12.7
+  - gffcompare=0.12.6
+  # ── Transcript assembly ───────────────────────────────────────────────────
+  - isoquant=3.4.2
+  # ── Transcript quantification ─────────────────────────────────────────────
+  - oarfish=0.6.5
+  # ── QC aggregation ────────────────────────────────────────────────────────
+  - multiqc=1.25.1
+  # ── R base ────────────────────────────────────────────────────────────────
+  - r-base=4.4.2
+  # ── R data / IO ───────────────────────────────────────────────────────────
+  - r-data.table
+  - r-arrow
+  # ── R plotting (for swish_plots.R) ────────────────────────────────────────
+  - r-ggplot2=3.5.1
+  - r-ggrepel=0.9.6       # labeled points on MA/volcano without overlaps
+  - r-pheatmap=1.0.12     # clustered heatmaps
+  - r-patchwork=1.3.0     # multi-panel figure assembly
+  - r-scales=1.3.0        # axis formatting helpers
+  - r-viridis=0.6.5       # colour-blind-safe palettes
+  - r-rcolorbrewer        # heatmap colour palettes
+  # ── Bioconductor differential analysis ───────────────────────────────────
+  - bioconductor-fishpond=2.12.0
+  - bioconductor-summarizedexperiment=1.36.0

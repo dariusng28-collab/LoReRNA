@@ -1,0 +1,15 @@
+name: miser
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.10
+  - pip
+  - samtools=1.21   # fix: was "samtools=1." (broken version string — conda build would fail)
+  - procps-ng
+  - pip:
+      - MisER==1.0.0
+      - numpy==1.23.5
+      - pandas==1.5.3
+      - parasail
+      - pysam
