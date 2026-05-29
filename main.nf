@@ -1,7 +1,7 @@
 nextflow.enable.dsl = 2
 
 // ============================================================
-// main.nf — LoReRNA v1.2.0
+// main.nf — LoReRNA v1.0.0
 //
 // Execution DAG (→ = feeds into):
 //
@@ -112,7 +112,7 @@ workflow LORERNA {
     OARFISH(CLEAN_BAM.out.clean_bam, ch_merged_fa)
 
     // ── Conditions CSV ────────────────────────────────────────────────────
-    // FIX v1.2.0: header was "sample_name" — must be "sample_id" for R stopifnot
+    // FIX v1.0.0: header was "sample_name" — must be "sample_id" for R stopifnot
     ch_conditions_csv = OARFISH.out.quant
         .map { meta, quant ->
             def pair_val  = (meta.pair  != null && meta.pair  != '') ? meta.pair  : ''

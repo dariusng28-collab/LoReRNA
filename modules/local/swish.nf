@@ -105,7 +105,10 @@ process SWISH {
         --alpha       ${params.swish_alpha}
 
     # ── Step 4: Verify all expected outputs ──────────────────────────────
-    for csv in results/DTE_all_significant.csv \\
+    for csv in results/DTE_full_results.csv \\
+               results/DTU_full_results.csv \\
+               results/DGE_full_results.csv \\
+               results/DTE_all_significant.csv \\
                results/DTU_all_significant.csv \\
                results/DGE_all_significant.csv; do
         if [ ! -f "\${csv}" ]; then

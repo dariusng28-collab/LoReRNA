@@ -53,12 +53,12 @@
 process OARFISH {
 
     tag "${meta.id}"
-    label 'process_very_high'   // cpus=4, memory=64 GB, time=72 h — see conf/ucl_sge.config
+    label 'process_very_high'   // cpus=4, memory=64 GB, time=72 h — see conf/sge.config
 
     publishDir "${params.outdir}/05_oarfish/${meta.id}", mode: params.publish_mode
 
     input:
-    tuple val(meta), path(clean_bam)   // from PREPARE_OARFISH_REFERENCE.out.clean_bams
+    tuple val(meta), path(clean_bam)   // from CLEAN_BAM.out.clean_bam
     path  merged_fa                    // from PREPARE_OARFISH_REFERENCE.out.merged_fa
 
     output:

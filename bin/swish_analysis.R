@@ -333,6 +333,9 @@ dte_df <- data.frame(
   stringsAsFactors = FALSE
 )
 
+write.csv(dte_df[order(dte_df$qvalue, -abs(dte_df$log2FC)), ],
+          file.path(results_dir, "DTE_full_results.csv"), row.names = FALSE)
+cat("DTE full results written:", nrow(dte_df), "transcripts tested\n")
 sig_dte <- dte_df[!is.na(dte_df$qvalue) & dte_df$qvalue < alpha, ]
 sig_dte <- sig_dte[order(sig_dte$qvalue, -abs(sig_dte$log2FC)), ]
 
@@ -430,6 +433,9 @@ dtu_df <- data.frame(
   stringsAsFactors = FALSE
 )
 
+write.csv(dtu_df[order(dtu_df$qvalue, -abs(dtu_df$log2FC)), ],
+          file.path(results_dir, "DTU_full_results.csv"), row.names = FALSE)
+cat("DTU full results written:", nrow(dtu_df), "transcripts tested\n")
 sig_dtu <- dtu_df[!is.na(dtu_df$qvalue) & dtu_df$qvalue < alpha, ]
 sig_dtu <- sig_dtu[order(sig_dtu$qvalue, -abs(sig_dtu$log2FC)), ]
 
@@ -573,6 +579,9 @@ dge_df <- data.frame(
   stringsAsFactors = FALSE
 )
 
+write.csv(dge_df[order(dge_df$qvalue, -abs(dge_df$log2FC)), ],
+          file.path(results_dir, "DGE_full_results.csv"), row.names = FALSE)
+cat("DGE full results written:", nrow(dge_df), "genes tested\n")
 sig_dge <- dge_df[!is.na(dge_df$qvalue) & dge_df$qvalue < alpha, ]
 sig_dge <- sig_dge[order(sig_dge$qvalue, -abs(sig_dge$log2FC)), ]
 
@@ -639,9 +648,9 @@ cat("DGE genes       :", nrow(sig_dge), "\n")
 cat("=================================================\n\n")
 
 cat("Results CSVs in:", results_dir, "\n")
-cat("  DTE_all_significant.csv  |  DTE_upregulated.csv  |  DTE_downregulated.csv\n")
-cat("  DTU_all_significant.csv  |  DTU_increased_usage.csv  |  DTU_decreased_usage.csv\n")
-cat("  DGE_all_significant.csv  |  DGE_upregulated.csv  |  DGE_downregulated.csv\n\n")
+cat("  DTE_full_results.csv  |  DTE_all_significant.csv  |  DTE_upregulated.csv  |  DTE_downregulated.csv\n")
+cat("  DTU_full_results.csv  |  DTU_all_significant.csv  |  DTU_increased_usage.csv  |  DTU_decreased_usage.csv\n")
+cat("  DGE_full_results.csv  |  DGE_all_significant.csv  |  DGE_upregulated.csv  |  DGE_downregulated.csv\n\n")
 
 cat("Plots in:", plots_dir, "\n")
 cat("  DTE_plots.pdf — 6 pages\n")
