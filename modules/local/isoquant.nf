@@ -19,8 +19,8 @@
 // Output layout:
 //   With --prefix <sample_id> and -o <sample_id>, IsoQuant v3 writes all
 //   results to:
-//     <sample_id>/<sample_id>.transcript_models.gtf
-//     <sample_id>/<sample_id>.transcript_counts.tsv
+//     <sample_id>/<sample_id>/<sample_id>.transcript_models.gtf
+//     <sample_id>/<sample_id>/<sample_id>.transcript_counts.tsv
 //     etc.
 //   The 'OUT/OUT.*' layout only applies when --prefix is omitted.
 //   publishDir then copies the whole directory to results/03_isoquant/.
@@ -34,7 +34,7 @@
 //   Corrected transcript_models.gtf path from
 //     ${sample_id}/OUT/OUT.transcript_models.gtf   (default --prefix layout)
 //   to
-//     ${sample_id}/${sample_id}.transcript_models.gtf  (--prefix layout)
+//     ${sample_id}/${sample_id}/${sample_id}.transcript_models.gtf  (--prefix layout, IsoQuant v3 nested output)
 //   The old path caused every ISOQUANT job to fail at the cp step.
 // ============================================================
 
@@ -52,9 +52,9 @@ process ISOQUANT {
     path  isoquant_annotation                       // reference_gtf or reference_db param
 
     output:
-    tuple val(meta), path("${meta.id}/*.transcript_counts.tsv"),    emit: transcript_counts
-    tuple val(meta), path("${meta.id}/*.gene_counts.tsv"),          emit: gene_counts
-    tuple val(meta), path("${meta.id}/*.read_assignments.tsv.gz"),  emit: read_assignments
+    tuple val(meta), path("${meta.id}/${meta.id}/*.transcript_counts.tsv"),    emit: transcript_counts
+    tuple val(meta), path("${meta.id}/${meta.id}/*.gene_counts.tsv"),          emit: gene_counts
+    tuple val(meta), path("${meta.id}/${meta.id}/*.read_assignments.tsv.gz"),  emit: read_assignments
     tuple val(meta), path("${meta.id}.transcript_models.gtf"),      emit: transcript_model_gtf
     tuple val(meta), path("${meta.id}/"),                           emit: outdir
 
@@ -90,8 +90,8 @@ process ISOQUANT {
     # --prefix ${sample_id} sets the output file basename.
     # -o ${sample_id}        sets the output directory.
     # With both set, IsoQuant v3 writes:
-    #   ${sample_id}/${sample_id}.transcript_models.gtf
-    #   ${sample_id}/${sample_id}.transcript_counts.tsv
+    #   ${sample_id}/${sample_id}/${sample_id}.transcript_models.gtf
+    #   ${sample_id}/${sample_id}/${sample_id}.transcript_counts.tsv
     #   etc.
     # Do NOT omit --prefix — the default 'OUT/OUT.*' layout is not used here.
     ${params.isoquant_exe} \\
@@ -106,16 +106,17 @@ process ISOQUANT {
         -o           ${sample_id} \\
         ${extra_args}
 
-    # With --prefix, IsoQuant writes to ${sample_id}/${sample_id}.transcript_models.gtf
+    # With --prefix, IsoQuant v3 writes to ${sample_id}/${sample_id}/${sample_id}.transcript_models.gtf
+    # (nested: -o sets outer dir, --prefix sets inner dir AND file basename)
     # (not OUT/OUT.transcript_models.gtf — that is the no-prefix default layout).
-    if [ ! -f "${sample_id}/${sample_id}.transcript_models.gtf" ]; then
+    if [ ! -f "${sample_id}/${sample_id}/${sample_id}.transcript_models.gtf" ]; then
         echo "ERROR: IsoQuant transcript model GTF not found."
-        echo "Expected: ${sample_id}/${sample_id}.transcript_models.gtf"
+        echo "Expected: ${sample_id}/${sample_id}/${sample_id}.transcript_models.gtf"
         echo "Output directory contents:"
         ls -lh "${sample_id}/" || true
         exit 1
     fi
-    cp "${sample_id}/${sample_id}.transcript_models.gtf" "${sample_id}.transcript_models.gtf"
+    cp "${sample_id}/${sample_id}/${sample_id}.transcript_models.gtf" "${sample_id}.transcript_models.gtf"
 
     echo "SUCCESS: IsoQuant finished for ${sample_id}"
     """
