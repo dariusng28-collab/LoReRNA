@@ -136,20 +136,30 @@ process PREPARE_OARFISH_REFERENCE {
     N_TX2GENE=\$(wc -l < tx2gene.tsv)
     echo "tx2gene complete — \${N_TX2GENE} mappings"
 
-    # ── Step 4: Validate FASTA vs tx2gene ────────────────────────────────
-    echo "[4/4] Validating FASTA vs tx2gene counts..."
+    # ── Step 4: Fill gaps and validate FASTA vs tx2gene ──────────────────
+    # Some novel transcripts from gffcompare may not parse cleanly with awk.
+    # For any FASTA entry missing from tx2gene, use transcript_id as gene_name.
+    # These will be quantified by oarfish and appear in DTE; in DGE they
+    # aggregate under their own transcript ID (standard practice for novel tx).
+    echo "[4/4] Filling tx2gene gaps and validating..."
+
+    grep "^>" merged_expressed_transcripts.fa | sed 's/>//' | awk '{print \$1}' | sort         > "\${TMPWORK}/fasta_ids.txt"
+    awk '{print \$1}' tx2gene.tsv | sort         > "\${TMPWORK}/tx2gene_ids.txt"
+
+    N_MISSING=\$(comm -23 "\${TMPWORK}/fasta_ids.txt" "\${TMPWORK}/tx2gene_ids.txt" | wc -l)
+    if [ "\${N_MISSING}" -gt 0 ]; then
+        echo "WARNING: \${N_MISSING} transcripts have no gene mapping — using transcript_id as gene_name"
+        comm -23 "\${TMPWORK}/fasta_ids.txt" "\${TMPWORK}/tx2gene_ids.txt" |             awk '{print \$1"\t"\$1}' >> tx2gene.tsv
+    fi
 
     N_FASTA=\$(grep -c "^>" merged_expressed_transcripts.fa)
     N_TX=\$(wc -l < tx2gene.tsv)
 
     if [ "\${N_FASTA}" -ne "\${N_TX}" ]; then
-        echo "ERROR: FASTA sequences (\${N_FASTA}) != tx2gene entries (\${N_TX})"
-        grep "^>" merged_expressed_transcripts.fa | sed 's/>//' | awk '{print \$1}' | sort > "\${TMPWORK}/fasta_ids.txt"
-        awk '{print \$1}' tx2gene.tsv | sort > "\${TMPWORK}/tx2gene_ids.txt"
-        comm -23 "\${TMPWORK}/fasta_ids.txt" "\${TMPWORK}/tx2gene_ids.txt" || true
+        echo "ERROR: FASTA sequences (\${N_FASTA}) != tx2gene entries (\${N_TX}) after gap fill"
         exit 1
     fi
-    echo "Validation passed — \${N_FASTA} transcripts matched in FASTA and tx2gene"
+    echo "Validation passed — \${N_FASTA} transcripts in FASTA and tx2gene (\${N_MISSING} used transcript_id as gene_name)"
 
     rm -rf "\${TMPWORK}"
 

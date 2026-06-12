@@ -1,7 +1,7 @@
 nextflow.enable.dsl = 2
 
 // ============================================================
-// main.nf — LoReRNA v1.0.0
+// main.nf — LoReRNA v1.2.0
 //
 // Execution DAG (→ = feeds into):
 //
@@ -112,7 +112,7 @@ workflow LORERNA {
     OARFISH(CLEAN_BAM.out.clean_bam, ch_merged_fa)
 
     // ── Conditions CSV ────────────────────────────────────────────────────
-    // FIX v1.0.0: header was "sample_name" — must be "sample_id" for R stopifnot
+    // FIX v1.2.0: header was "sample_name" — must be "sample_id" for R stopifnot
     ch_conditions_csv = OARFISH.out.quant
         .map { meta, quant ->
             def pair_val  = (meta.pair  != null && meta.pair  != '') ? meta.pair  : ''
@@ -174,6 +174,16 @@ workflow LORERNA {
 workflow {
 
     // ── Required parameter validation ─────────────────────────────────────
+    // ── seq_tech validation ──────────────────────────────────────────────
+    def valid_seq_tech = ['ont-drna', 'ont-cdna', 'pac-bio', 'pac-bio-hifi']
+    if (!(params.seq_tech in valid_seq_tech)) {
+        error """
+        Invalid --seq_tech value: '${params.seq_tech}'
+        Valid values: ${valid_seq_tech.join(', ')}
+        Example: --seq_tech ont-drna
+        """
+    }
+
     ['samplesheet', 'reference_fasta', 'reference_bed12'].each { p ->
         if (!params[p]) error "Missing required parameter: --${p}"
     }
