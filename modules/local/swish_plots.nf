@@ -24,7 +24,7 @@ process SWISH_PLOTS {
     tag "all_samples"
     label 'process_medium'
 
-    publishDir "${params.outdir}/06_swish/publication_plots", mode: params.publish_mode
+    publishDir "${params.outdir}/06_swish/publication_plots", saveAs: { it.replaceFirst("pub_plots/", "") }, mode: params.publish_mode
 
     input:
     path csv_results           // collected: all *.csv from SWISH results dir
@@ -55,6 +55,7 @@ process SWISH_PLOTS {
     mkdir -p results quant_input pub_plots
 
     for f in *.csv; do
+        [ "\${f}" = "conditions.csv" ] && continue  # keep in work dir for R
         mv "\${f}" results/
     done
 

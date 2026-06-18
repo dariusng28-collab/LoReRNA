@@ -80,26 +80,27 @@ names(COND_COLOURS) <- c(cond_a, cond_b)
 
 # ── 2. Load support data ──────────────────────────────────────────────────────
 
-tx2gene   <- fread(tx2gene_f, header = FALSE, col.names = c("tx_id", "gene"))
-cond_tbl  <- fread(cond_csv)
+tx2gene   <- as.data.frame(fread(tx2gene_f, header = FALSE, col.names = c("tx_id", "gene")))
+cond_tbl  <- as.data.frame(fread(cond_csv))
 samples   <- cond_tbl$sample_id
 
 # Load oarfish counts: normalise to TPM per sample for heatmaps
 load_tpm <- function(quant_dir, samples) {
   dt_list <- lapply(samples, function(s) {
     qf <- file.path(quant_dir, s, paste0(s, ".quant"))
-    stopifnot(paste0("quant file not found: ", qf) = file.exists(qf))
+    if (!file.exists(qf)) stop("quant file not found: ", qf)
     q <- fread(qf, select = c("tname", "num_reads", "len"))
     q[, tpm := {
       rate <- num_reads / pmax(len, 1)
       rate / sum(rate) * 1e6
     }]
-    q[, .(tname, tpm)]
+    q <- q[, .(tname, tpm)]
+    setnames(q, "tpm", s)  # rename before merge to avoid tpm.x / tpm.y conflicts
+    q
   })
   names(dt_list) <- samples
 
   tpm_wide <- Reduce(function(a, b) merge(a, b, by = "tname", all = TRUE), dt_list)
-  setnames(tpm_wide, c("tname", samples))
   mat <- as.matrix(tpm_wide[, -1, with = FALSE])
   rownames(mat) <- tpm_wide$tname
   mat[is.na(mat)] <- 0
@@ -127,10 +128,10 @@ load_results <- function(prefix) {
   sig_path  <- file.path(results_dir, paste0(prefix, "_all_significant.csv"))
 
   if (file.exists(full_path)) {
-    dt <- fread(full_path)
+    dt <- as.data.frame(fread(full_path))
     message("  Loaded full results: ", nrow(dt), " features (", prefix, ")")
   } else if (file.exists(sig_path)) {
-    dt <- fread(sig_path)
+    dt <- as.data.frame(fread(sig_path))
     message("  NOTE: only significant results found for ", prefix,
             " — MA/volcano plots show sig features only")
   } else {
@@ -162,7 +163,7 @@ top_labels <- function(dt, n = 15, sig_col = "qvalue") {
 
 plot_ma <- function(dt, title, subtitle = "", sig_col = "qvalue",
                     x_col = "log10mean", y_col = "log2FC", colour = "#E74C3C") {
-  dt <- copy(dt)
+  dt <- as.data.frame(dt)
   dt$sig   <- !is.na(dt[[sig_col]]) & dt[[sig_col]] < alpha
   dt$label <- ifelse(dt$sig & dt$gene %in% top_labels(dt), dt$gene, NA_character_)
 
@@ -192,7 +193,7 @@ plot_ma <- function(dt, title, subtitle = "", sig_col = "qvalue",
 
 plot_volcano <- function(dt, title, subtitle = "", sig_col = "qvalue",
                          colour = "#E74C3C") {
-  dt <- copy(dt)
+  dt <- as.data.frame(dt)
   dt$sig   <- !is.na(dt[[sig_col]]) & dt[[sig_col]] < alpha
   dt$neglog10q <- -log10(pmax(dt[[sig_col]], 1e-300))
   dt$label <- ifelse(dt$sig & dt$gene %in% top_labels(dt), dt$gene, NA_character_)
@@ -323,7 +324,7 @@ plot_summary <- function(dte_sig, dtu_sig, dge_sig) {
 message("Plotting DTE...")
 dte <- annotate_gene(load_results("DTE"))
 dte_sig_csv <- file.path(results_dir, "DTE_all_significant.csv")
-dte_sig <- if (file.exists(dte_sig_csv)) annotate_gene(fread(dte_sig_csv)) else dte[dte$qvalue < alpha & !is.na(dte$qvalue), ]
+dte_sig <- if (file.exists(dte_sig_csv)) annotate_gene(as.data.frame(fread(dte_sig_csv))) else dte[dte$qvalue < alpha & !is.na(dte$qvalue), ]
 
 dte$label <- dte$gene
 
@@ -375,7 +376,7 @@ message("  DTE plots written to ", file.path(plots_dir, "DTE_publication_plots.p
 message("Plotting DTU...")
 dtu <- annotate_gene(load_results("DTU"))
 dtu_sig_csv <- file.path(results_dir, "DTU_all_significant.csv")
-dtu_sig <- if (file.exists(dtu_sig_csv)) annotate_gene(fread(dtu_sig_csv)) else dtu[dtu$qvalue < alpha & !is.na(dtu$qvalue), ]
+dtu_sig <- if (file.exists(dtu_sig_csv)) annotate_gene(as.data.frame(fread(dtu_sig_csv))) else dtu[dtu$qvalue < alpha & !is.na(dtu$qvalue), ]
 
 dtu$label <- dtu$gene
 
@@ -423,7 +424,7 @@ setnames(dge, old = names(dge)[1], new = "gene_id", skip_absent = TRUE)
 dge$gene <- if ("gene" %in% names(dge)) dge$gene else dge$gene_id
 
 dge_sig_csv <- file.path(results_dir, "DGE_all_significant.csv")
-dge_sig <- if (file.exists(dge_sig_csv)) annotate_gene(fread(dge_sig_csv)) else dge[dge$qvalue < alpha & !is.na(dge$qvalue), ]
+dge_sig <- if (file.exists(dge_sig_csv)) annotate_gene(as.data.frame(fread(dge_sig_csv))) else dge[dge$qvalue < alpha & !is.na(dge$qvalue), ]
 dge$label <- dge$gene
 
 # Aggregate TPM to gene level for DGE heatmap

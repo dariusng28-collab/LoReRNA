@@ -103,35 +103,33 @@ process PREPARE_OARFISH_REFERENCE {
     # ── Step 3: tx2gene mapping ───────────────────────────────────────────
     echo "[3/4] Building tx2gene mapping..."
 
+    # POSIX-compatible awk using match()+substr() instead of 3-arg match().
+    # Priority: gene_name > cmp_ref_gene (gffcompare attribute for annotated
+    # transcripts) > gene_id (XLOC locus ID for novel transcripts).
     awk '
         \$3 == "transcript" {
-            transcript_id = ""
-            gene_id       = ""
-            gene_name     = ""
-            n = split(\$9, fields, ";")
-            for (i = 1; i <= n; i++) {
-                gsub(/^[ \\t]+|[ \\t]+\$/, "", fields[i])
-                if (fields[i] ~ /^transcript_id/) {
-                    split(fields[i], a, "\\"")
-                    transcript_id = a[2]
-                }
-                if (fields[i] ~ /^gene_id/) {
-                    split(fields[i], a, "\\"")
-                    gene_id = a[2]
-                }
-                if (fields[i] ~ /^gene_name/) {
-                    split(fields[i], a, "\\"")
-                    gene_name = a[2]
-                }
-            }
-            if (transcript_id != "") {
-                if (gene_name != "")
-                    print transcript_id "\\t" gene_name
-                else if (gene_id != "")
-                    print transcript_id "\\t" gene_id
-            }
+            tx   = ""
+            gene = ""
+
+            if (match(\$0, /transcript_id "[^"]+"/)) {
+                tx = substr(\$0, RSTART+15, RLENGTH-16)
+            } else next
+
+            if (match(\$0, /gene_name "[^"]+"/)) {
+                gene = substr(\$0, RSTART+11, RLENGTH-12)
+            } else if (match(\$0, /cmp_ref_gene "[^"]+"/)) {
+                gene = substr(\$0, RSTART+14, RLENGTH-15)
+            } else if (match(\$0, /gene_id "[^"]+"/)) {
+                gene = substr(\$0, RSTART+9, RLENGTH-10)
+            } else next
+
+            if (tx != "" && gene != "") print tx "\t" gene
         }
     ' gffcmp.combined.gtf > tx2gene.tsv
+
+    sort -u tx2gene.tsv -o tx2gene.tsv
+
+    sort -u tx2gene.tsv -o tx2gene.tsv
 
     N_TX2GENE=\$(wc -l < tx2gene.tsv)
     echo "tx2gene complete — \${N_TX2GENE} mappings"

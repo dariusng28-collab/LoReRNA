@@ -112,9 +112,11 @@ workflow LORERNA {
     OARFISH(CLEAN_BAM.out.clean_bam, ch_merged_fa)
 
     // ── Conditions CSV ────────────────────────────────────────────────────
-    // FIX v1.2.0: header was "sample_name" — must be "sample_id" for R stopifnot
-    ch_conditions_csv = OARFISH.out.quant
-        .map { meta, quant ->
+    // Generated from samplesheet at workflow start — value channel (.first())
+    // so it can be consumed by both SWISH and SWISH_PLOTS without being empty
+    // on second use. Samplesheet already contains all needed information.
+    ch_conditions_csv = ch_samplesheet
+        .map { meta, bam ->
             def pair_val  = (meta.pair  != null && meta.pair  != '') ? meta.pair  : ''
             def batch_val = (meta.batch != null && meta.batch != '') ? meta.batch : ''
             "${meta.id},${meta.condition},${pair_val},${batch_val}\n"
@@ -124,6 +126,8 @@ workflow LORERNA {
             seed: "sample_id,condition,pair,batch\n",
             sort: true
         )
+        .first()
+
 
     ch_quant_files  = OARFISH.out.quant.map   { meta, q  -> q  }.collect()
     ch_infrep_files = OARFISH.out.infreps.map { meta, ir -> ir }.collect()

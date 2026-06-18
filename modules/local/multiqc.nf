@@ -31,7 +31,7 @@ process MULTIQC {
 
     output:
     path "multiqc_report.html",  emit: report
-    path "multiqc_data/",        emit: data
+    path "multiqc_report_data/",        emit: data
     path "multiqc_plots/",       emit: plots, optional: true
 
     script:
@@ -54,7 +54,6 @@ process MULTIQC {
         --filename multiqc_report.html \\
         --outdir   . \\
         --force \\
-        --export   \\
         --data-dir \\
         --cl-config 'log_filesize_limit: 10000000'
 
