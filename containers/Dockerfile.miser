@@ -7,4 +7,9 @@ COPY --chown=$MAMBA_USER:$MAMBA_USER containers/environment_miser.yml /tmp/envir
 RUN micromamba install -y -n base -f /tmp/environment_miser.yml && \
     micromamba clean --all --yes
 
+ENV PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+RUN which ps && ps --version
+RUN which samtools
+
 WORKDIR /workspace

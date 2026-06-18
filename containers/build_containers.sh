@@ -55,13 +55,14 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# ── Resolve version from nextflow.config if not provided ─────────────────────
+# ── Resolve version from container_lorerna tag in nextflow.config ────────────
 if [ -z "${VERSION}" ]; then
-    VERSION=$(grep "version\s*=" "${REPO_ROOT}/nextflow.config" \
-              | grep -v '//' | head -1 | grep -oP "[\d]+\.[\d]+\.[\d]+")
+    VERSION=$(grep "container_lorerna" "${REPO_ROOT}/nextflow.config" \
+              | grep -v '^\s*//' | grep -oP "lorerna:\K[\d]+\.[\d]+\.[\d]+")
     if [ -z "${VERSION}" ]; then
-        echo "ERROR: Could not parse version from nextflow.config."
-        echo "       Set it explicitly: --version 1.2.0"
+        echo "ERROR: Could not parse container version from nextflow.config."
+        echo "       Expected a line like: container_lorerna = 'docker://user/lorerna:1.1.0'"
+        echo "       Set it explicitly: --version 1.1.0"
         exit 1
     fi
 fi
@@ -105,7 +106,7 @@ if ${BUILD_LORERNA}; then
     echo "lorerna build complete: ${LORERNA_TAG}"
 fi
 
-# ── Build miser (MisER, pysam, samtools=1.21) ─────────────────────────────────
+# ── Build miser (MisER, pysam, samtools=1.23.1) ───────────────────────────────
 if ${BUILD_MISER}; then
     echo
     echo "[2/2] Building miser image: ${MISER_TAG}"
@@ -142,7 +143,7 @@ if ! ${PUSH}; then
         echo
         echo " lorerna:"
         docker run --rm "${LORERNA_TAG}" samtools  --version | head -1
-        docker run --rm "${LORERNA_TAG}" isoquant.py --version 2>&1 | head -1 || true
+        docker run --rm "${LORERNA_TAG}" isoquant --version 2>&1 | head -1 || true
         docker run --rm "${LORERNA_TAG}" oarfish --version 2>&1 | head -1 || true
         docker run --rm "${LORERNA_TAG}" Rscript --version 2>&1 | head -1
         docker run --rm "${LORERNA_TAG}" multiqc --version

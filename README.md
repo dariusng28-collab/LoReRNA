@@ -184,6 +184,39 @@ No additional pipeline flags are needed.
 
 ---
 
+## Multi-condition experiments
+
+LoReRNA compares exactly two conditions per run (`--swish_condition_a` vs `--swish_condition_b`).
+For three or more conditions, run the pipeline once per pairwise comparison.
+The `swish_analysis.R` script automatically filters the conditions CSV to only the two
+conditions being compared, so you can safely pass a samplesheet containing all samples.
+
+**Example: CTRL vs cond1 and CTRL vs cond2**
+
+Run 1 — all samples in samplesheet, compare CTRL vs cond1:
+```bash
+nextflow run main.nf \
+  --samplesheet samplesheet_all.csv \
+  --swish_condition_a CTRL \
+  --swish_condition_b cond1 \
+  --outdir results_CTRL_vs_cond1
+```
+
+Run 2 — same full samplesheet, compare CTRL vs cond2 (uses `-resume` to reuse CTRL Oarfish cache):
+```bash
+nextflow run main.nf \
+  --samplesheet samplesheet_all.csv \
+  --swish_condition_a CTRL \
+  --swish_condition_b cond2 \
+  --outdir results_CTRL_vs_cond2 \
+  -resume
+```
+
+With `-resume`, all CTRL sample steps (MisER → IsoQuant → Oarfish) are reused from the
+first run's cache (~4 h total vs ~48 h from scratch for a 15 G BAM cohort).
+
+---
+
 ## Parameters
 
 ### Required
@@ -377,8 +410,8 @@ container_miser   = 'docker://your-dockerhub/miser:1.0.1'
 
 | Image | Key tools |
 |-------|-----------|
-| `lorerna:1.0.0` | samtools 1.21 · IsoQuant 3.4.2 · oarfish 0.6.5 · R 4.4.2 + fishpond 2.12.0 · ggplot2 · pheatmap · MultiQC 1.25.1 |
-| `miser:1.0.0` | samtools 1.21 · MisER 1.0.0 · pysam · parasail |
+| `lorerna:1.1.0` | samtools 1.23.1 · IsoQuant 3.13.0 · oarfish 0.9.4 · R 4.4.2 + fishpond 2.12.0 · ggplot2 · pheatmap · MultiQC 1.25.1 |
+| `miser:1.1.0` | samtools 1.23.1 · MisER 1.0.0 · pysam · parasail |
 
 ---
 
@@ -487,7 +520,7 @@ seed: "sample_id,condition,pair,batch\n"
 
 ### SWISH_PLOTS: R package not found
 
-Ensure you are using the `lorerna:1.0.0` container which includes
+Ensure you are using the `lorerna:1.1.0` container which includes
 `r-ggplot2`, `r-ggrepel`, `r-pheatmap`, `r-patchwork`, `r-viridis`.
 Earlier container versions do not include these packages.
 

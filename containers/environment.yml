@@ -6,15 +6,15 @@ dependencies:
   - python=3.11
   - pip
   # ── Alignment / BAM handling ──────────────────────────────────────────────
-  - samtools=1.21
+  - samtools=1.23.1
   - procps-ng
   # ── GTF utilities ─────────────────────────────────────────────────────────
-  - gffread=0.12.7
-  - gffcompare=0.12.6
+  - gffread=0.12.9
+  - gffcompare=0.12.10
   # ── Transcript assembly ───────────────────────────────────────────────────
-  - isoquant=3.4.2
+  - isoquant=3.13.0
   # ── Transcript quantification ─────────────────────────────────────────────
-  - oarfish=0.6.5
+  - oarfish=0.9.4
   # ── QC aggregation ────────────────────────────────────────────────────────
   - multiqc=1.25.1
   # ── R base ────────────────────────────────────────────────────────────────

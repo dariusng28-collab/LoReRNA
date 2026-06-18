@@ -22,7 +22,7 @@
 //   This is the same approach validated in issue #54 of the oarfish repo.
 //
 // Why --reference not --index:
-//   oarfish v0.6.5 does not support --index for reading a prebuilt index.
+//   oarfish v0.9.4 does not require --index for reading a prebuilt index.
 //   Only --index-out (write) exists in this version. Each sample rebuilds
 //   the minimap2 index internally from the FASTA at runtime (~10 minutes).
 //   This is a per-run cost with no effect on quantification correctness.

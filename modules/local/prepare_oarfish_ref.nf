@@ -129,8 +129,6 @@ process PREPARE_OARFISH_REFERENCE {
 
     sort -u tx2gene.tsv -o tx2gene.tsv
 
-    sort -u tx2gene.tsv -o tx2gene.tsv
-
     N_TX2GENE=\$(wc -l < tx2gene.tsv)
     echo "tx2gene complete — \${N_TX2GENE} mappings"
 

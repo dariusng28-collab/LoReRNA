@@ -56,7 +56,6 @@ process ISOQUANT {
     tuple val(meta), path("${meta.id}/${meta.id}/*.gene_counts.tsv"),          emit: gene_counts
     tuple val(meta), path("${meta.id}/${meta.id}/*.read_assignments.tsv.gz"),  emit: read_assignments
     tuple val(meta), path("${meta.id}.transcript_models.gtf"),      emit: transcript_model_gtf
-    tuple val(meta), path("${meta.id}/"),                           emit: outdir
 
     script:
     def sample_id  = meta.id

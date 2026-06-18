@@ -1,7 +1,7 @@
 nextflow.enable.dsl = 2
 
 // ============================================================
-// main.nf — LoReRNA v1.2.0
+// main.nf — LoReRNA v1.0.0
 //
 // Execution DAG (→ = feeds into):
 //

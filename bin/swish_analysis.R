@@ -60,6 +60,16 @@ library(fishpond)
 ############################################################
 cond_tbl <- fread(cond_csv)
 stopifnot(all(c("sample_id", "condition") %in% colnames(cond_tbl)))
+cond_tbl <- cond_tbl[cond_tbl$condition %in% c(cond_a, cond_b), ]
+
+if (nrow(cond_tbl) == 0)
+  stop("No samples found after filtering to condition_a='", cond_a,
+       "' and condition_b='", cond_b,
+       "'. Check --swish_condition_a / --swish_condition_b match the conditions column in conditions.csv.")
+if (length(unique(cond_tbl$condition)) < 2)
+  stop("Only one condition found after filtering ('", unique(cond_tbl$condition),
+       "'). Both condition_a='", cond_a, "' and condition_b='", cond_b,
+       "' must be present in conditions.csv.")
 
 samples    <- cond_tbl$sample_id
 conditions <- cond_tbl$condition
@@ -80,8 +90,9 @@ if (has_pair && has_batch) {
 ############################################################
 # 3. LOAD COUNTS + LENGTHS
 ############################################################
-counts_list <- list()
-length_list <- list()
+counts_list  <- list()
+length_list  <- list()
+tnames_list  <- list()
 
 for (s in samples) {
   qf <- file.path(quant_dir, s, paste0(s, ".quant"))
@@ -89,8 +100,17 @@ for (s in samples) {
   q <- fread(qf)
   counts_list[[s]] <- q$num_reads
   length_list[[s]] <- q$len
-  if (!exists("tx_names")) tx_names <- q$tname
+  tnames_list[[s]] <- q$tname
 }
+
+tx_names <- tnames_list[[samples[1]]]
+for (s in samples[-1]) {
+  if (length(tnames_list[[s]]) != length(tx_names) || !all(tnames_list[[s]] == tx_names))
+    stop("Transcript mismatch between sample '", samples[1], "' and '", s,
+         "': oarfish produced different transcript sets. ",
+         "Ensure all samples were quantified against the same merged_fa.")
+}
+rm(tnames_list)
 
 counts     <- do.call(cbind, counts_list)
 eff_length <- do.call(cbind, length_list)
