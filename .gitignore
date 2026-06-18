@@ -62,3 +62,9 @@ secrets/
 # Temporary validation samplesheets with real paths
 # (template versions with FILL_IN_* are fine to commit)
 test/samplesheet_*_real.csv
+
+# Site-specific cluster configs — contain institution paths, queue names,
+# cache dirs. Keep on each HPC locally; never commit to the public repo.
+conf/ucl.config
+conf/*_site.config
+conf/my_*.config
