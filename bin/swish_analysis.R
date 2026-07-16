@@ -449,6 +449,21 @@ cat("  DGE_full_results.csv  |  DGE_all_significant.csv  |  DGE_upregulated.csv 
 
 cat("Run finished:", format(Sys.time()), "\n")
 
+# MultiQC-compatible summary TSV — picked up by multiqc_config.yml sp: swish_summary
+swish_mqc <- data.frame(
+  Sample   = paste0(cond_b, "_vs_", cond_a),
+  DTE_sig  = nrow(sig_dte),
+  DTU_sig  = nrow(sig_dtu),
+  DGE_sig  = nrow(sig_dge),
+  DTE_up   = sum(sig_dte$log2FC > 0, na.rm = TRUE),
+  DTE_down = sum(sig_dte$log2FC < 0, na.rm = TRUE),
+  DGE_up   = sum(sig_dge$log2FC > 0, na.rm = TRUE),
+  DGE_down = sum(sig_dge$log2FC < 0, na.rm = TRUE)
+)
+write.table(swish_mqc,
+  file.path(logs_dir, "swish_summary_mqc.tsv"),
+  sep = "\t", quote = FALSE, row.names = FALSE)
+
 sink(type = "message")
 sink(type = "output")
 close(log_con)

@@ -39,8 +39,8 @@ grep 'container_' nextflow.config
 
 Should show:
 ```
-container_lorerna = 'docker://dariusng28/lorerna:1.0.0'
-container_miser   = 'docker://dariusng28/miser:1.0.0'
+container_lorerna = 'docker://dariusng28/lorerna:1.1.0'
+container_miser   = 'docker://dariusng28/miser:1.1.0'
 ```
 
 If your Docker Hub username is different, update those two lines and also
@@ -84,7 +84,7 @@ Expected:
 ```
 
 **Verify before continuing:** open hub.docker.com in your browser,
-sign in, confirm both `lorerna:1.0.0` and `miser:1.0.0` tags exist.
+sign in, confirm both `lorerna:1.1.0` and `miser:1.1.0` tags exist.
 
 ---
 
@@ -446,5 +446,5 @@ nextflow run main.nf \
 | 19 | CLEAN_BAM absent | Check `include { CLEAN_BAM }` and `CLEAN_BAM(...)` in main.nf |
 | 20 | MisER scratch on /tmp | Add `scratch = false`, `containerOptions = "-B /scratch0"`, `tscratch=60G` to `withName: 'MISER'` in conf/sge.config |
 | 20 | SWISH `sample_id not found` | Check `seed:` line in main.nf — must be `"sample_id,condition,pair,batch\n"` |
-| 20 | SWISH_PLOTS R package missing | Container `lorerna:1.0.0` not pulled; check Docker Hub tag exists; check `container_lorerna` in nextflow.config |
+| 20 | SWISH_PLOTS R package missing | Container `lorerna:1.1.0` not pulled; check Docker Hub tag exists; check `container_lorerna` in nextflow.config |
 | 20 | MultiQC report missing | Check `work/` for the MULTIQC process log |

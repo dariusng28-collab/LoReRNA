@@ -23,7 +23,7 @@
 // Paired / batch design is auto-detected by swish_analysis.R from
 // non-empty 'pair' or 'batch' columns. No flags needed here.
 //
-// Changelog v1.2.0:
+// Changelog v1.0.0:
 //   Removed dead pair_arg / batch_arg Groovy variables — these were
 //   always empty strings and passed as blank arguments to Rscript.
 //   swish_analysis.R auto-detects design from conditions CSV columns.
@@ -40,17 +40,22 @@ process SWISH {
     path quant_files        // collected: all *.quant files (staged flat)
     path infrep_files       // collected: all *.infreps.pq files (staged flat)
     path tx2gene            // tx2gene.tsv from PREPARE_OARFISH_REFERENCE
-    path conditions_csv     // sample_id,condition[,pair,batch] CSV
+    path conditions_csv, stageAs: 'conditions_in.csv'   // sample_id,condition[,pair,batch] CSV
     path swish_script       // swish_analysis.R staged from bin/ via channel
 
     output:
-    path "results/*.csv",  emit: csv_results
-    path "plots/*.pdf",    emit: plots
-    path "logs/*.log",     emit: log
+    path "results/*.csv",    emit: csv_results
+    path "plots/*.pdf",      emit: plots
+    path "logs/*.log",       emit: log
+    path "logs/*_mqc.tsv",   emit: mqc_tsv
+    path "conditions.csv",   emit: conditions_out
 
     script:
     """
     set -euo pipefail
+
+    # Publish a real copy of conditions.csv (not a symlink) so nextflow clean is safe
+    cp "${conditions_csv}" conditions.csv
 
     echo "========================================"
     echo " SWISH: fishpond DTE / DTU / DGE"

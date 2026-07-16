@@ -83,8 +83,8 @@ nextflow -version   # should be >= 23.10.0
 Containers are pulled automatically on first run. To pre-pull onto an HPC cluster:
 
 ```bash
-singularity pull docker://your-dockerhub/lorerna:1.0.0
-singularity pull docker://your-dockerhub/miser:1.0.0
+singularity pull docker://your-dockerhub/lorerna:1.1.0
+singularity pull docker://your-dockerhub/miser:1.1.0
 ```
 
 ---
@@ -397,13 +397,13 @@ bash containers/build_containers.sh --push
 bash containers/build_containers.sh --push --miser-only
 
 # Specify a version tag
-bash containers/build_containers.sh --push --version 1.0.1
+bash containers/build_containers.sh --push --version 1.1.0
 ```
 
 After pushing, update `nextflow.config`:
 ```groovy
-container_lorerna = 'docker://your-dockerhub/lorerna:1.0.1'
-container_miser   = 'docker://your-dockerhub/miser:1.0.1'
+container_lorerna = 'docker://your-dockerhub/lorerna:1.1.0'
+container_miser   = 'docker://your-dockerhub/miser:1.1.0'
 ```
 
 ### Container contents

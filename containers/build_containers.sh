@@ -9,7 +9,7 @@
 #
 # Usage:
 #   cd /path/to/lorerna           # must run from repo root
-#   bash containers/build_containers.sh [--push] [--version 1.2.0]
+#   bash containers/build_containers.sh [--push] [--version 1.1.0]
 #
 # Flags:
 #   --push           push to Docker Hub after building (default: build only)
@@ -25,12 +25,12 @@
 #   the first time each image is used. To force a manual pull:
 #
 #   singularity pull \
-#     /path/to/singularity/cache/dariusng28-lorerna-1.0.0.sif \
-#     docker://dariusng28/lorerna:1.0.0
+#     /path/to/singularity/cache/dariusng28-lorerna-1.1.0.sif \
+#     docker://dariusng28/lorerna:1.1.0
 #
 #   singularity pull \
-#     /path/to/singularity/cache/dariusng28-miser-1.0.0.sif \
-#     docker://dariusng28/miser:1.0.0
+#     /path/to/singularity/cache/dariusng28-miser-1.1.0.sif \
+#     docker://dariusng28/miser:1.1.0
 # =============================================================================
 set -euo pipefail
 

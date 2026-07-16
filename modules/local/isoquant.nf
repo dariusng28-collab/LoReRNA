@@ -30,7 +30,7 @@
 //     *.gene_counts.tsv         — gene-level counts
 //     *.read_assignments.tsv.gz — per-read transcript assignments
 //
-// Changelog v1.1.1 (fix #1 — critical):
+// Changelog v1.0.0 (fix #1 — critical):
 //   Corrected transcript_models.gtf path from
 //     ${sample_id}/OUT/OUT.transcript_models.gtf   (default --prefix layout)
 //   to
