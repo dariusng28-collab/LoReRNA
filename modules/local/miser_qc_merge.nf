@@ -7,10 +7,10 @@
 // Runs once after all MISER_QC jobs complete (.collect()).
 //
 // Output:
-//   all_samples_rescue_metrics.tsv
+//   all_samples_rescue_metrics_mqc.tsv
 //
 // Format: one header row + one data row per sample, tab-separated.
-// Ready for direct import into R, Excel, or MultiQC (future).
+// The _mqc.tsv suffix is required for MultiQC custom_content auto-detection.
 // ============================================================
 
 process MISER_QC_MERGE {
@@ -24,16 +24,16 @@ process MISER_QC_MERGE {
     path metrics_files   // collected: all *.rescue_metrics.tsv files
 
     output:
-    path "all_samples_rescue_metrics.tsv", emit: merged_metrics
+    path "all_samples_rescue_metrics_mqc.tsv", emit: merged_metrics
 
     script:
     """
     # Keep header from first file only, skip it in all subsequent files.
     # FNR==1 && NR!=1: first line of current file but not first line overall.
     awk 'FNR==1 && NR!=1 {next} {print}' *.rescue_metrics.tsv \\
-        > all_samples_rescue_metrics.tsv
+        > all_samples_rescue_metrics_mqc.tsv
 
-    echo "Merged \$(ls *.rescue_metrics.tsv | wc -l) samples into all_samples_rescue_metrics.tsv"
-    echo "Rows (excluding header): \$(tail -n +2 all_samples_rescue_metrics.tsv | wc -l)"
+    echo "Merged \$(ls *.rescue_metrics.tsv | wc -l) samples into all_samples_rescue_metrics_mqc.tsv"
+    echo "Rows (excluding header): \$(tail -n +2 all_samples_rescue_metrics_mqc.tsv | wc -l)"
     """
 }

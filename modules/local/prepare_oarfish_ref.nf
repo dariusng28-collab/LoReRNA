@@ -25,7 +25,7 @@
 //   tx2gene       — tx2gene.tsv (TCONS_ID → gene_name)
 //   stats         — gffcmp.stats
 //
-// Changelog v1.2.0:
+// Changelog v1.0.0:
 //   Removed Step 5 (BAM cleaning) — moved to CLEAN_BAM process.
 //   CLEAN_BAM runs per-sample in parallel and no longer blocked by
 //   the GTF merge step, reducing wall-clock time for large cohorts.
@@ -126,8 +126,6 @@ process PREPARE_OARFISH_REFERENCE {
             if (tx != "" && gene != "") print tx "\t" gene
         }
     ' gffcmp.combined.gtf > tx2gene.tsv
-
-    sort -u tx2gene.tsv -o tx2gene.tsv
 
     sort -u tx2gene.tsv -o tx2gene.tsv
 

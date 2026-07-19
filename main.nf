@@ -1,7 +1,7 @@
 nextflow.enable.dsl = 2
 
 // ============================================================
-// main.nf — LoReRNA v1.2.0
+// main.nf — LoReRNA v1.0.0
 //
 // Execution DAG (→ = feeds into):
 //
@@ -157,7 +157,7 @@ workflow LORERNA {
         .mix( SAMTOOLS_STATS.out.stats.map    { meta, f -> f } )
         .mix( ISOQUANT_QC.out.mqc_tsv.map     { meta, f -> f } )
         .mix( MISER_QC_MERGE.out.merged_metrics )
-        .mix( SWISH.out.log.flatten() )
+        .mix( SWISH.out.mqc_tsv.flatten() )
         .collect()
 
     MULTIQC(ch_multiqc_inputs, ch_multiqc_config)

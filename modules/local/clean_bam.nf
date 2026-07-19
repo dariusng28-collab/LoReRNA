@@ -17,7 +17,7 @@
 //   InvalidData(DuplicateTag(Tag("ts"))). Removing the tag is safe
 //   because oarfish does not use ts — it re-aligns internally.
 //
-// Changelog v1.2.0:
+// Changelog v1.0.0:
 //   Extracted from PREPARE_OARFISH_REFERENCE step 5 into its own process.
 //   Adds -@ threads to both samtools commands.
 // ============================================================

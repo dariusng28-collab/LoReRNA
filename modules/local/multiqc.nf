@@ -5,17 +5,17 @@
 // Collects outputs from:
 //   SAMTOOLS_STATS  → *_flagstat.txt, *_idxstats.txt, *_stats.txt
 //   ISOQUANT_QC     → *_isoquant_mqc.tsv
-//   MISER_QC_MERGE  → miser_qc_cohort_metrics.tsv
-//   SWISH           → logs/*.log  (summary stats for custom content)
+//   MISER_QC_MERGE  → all_samples_rescue_metrics_mqc.tsv
+//   SWISH           → logs/*_mqc.tsv  (summary stats for custom content)
 //
 // MultiQC auto-detects samtools files by filename pattern.
-// IsoQuant and MisER files are parsed via multiqc_config.yml
+// IsoQuant, MisER, and SWISH files are parsed via multiqc_config.yml
 // custom_data sections.
 //
 // Outputs:
-//   multiqc_report.html     — main interactive HTML report
-//   multiqc_data/           — underlying data files (TSV, JSON)
-//   multiqc_plots/          — static plot images (PNG)
+//   multiqc_report.html      — main interactive HTML report
+//   multiqc_report_data/     — underlying data files (TSV, JSON)
+//   multiqc_plots/           — static plot images (PNG)
 // ============================================================
 
 process MULTIQC {

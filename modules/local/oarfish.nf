@@ -5,7 +5,7 @@
 //   oarfish \\
 //     --threads    <task.cpus>
 //     --reads      <sample.clean.bam>      (uBAM mode)
-//     --reference  <merged_transcripts.fa>
+//     --annotated  <merged_transcripts.fa>
 //     --seq-tech   <params.seq_tech>       (ont-drna for direct RNA)
 //     -o           <sample_id>
 //     --filter-group no-filters
@@ -21,11 +21,13 @@
 //   merged transcriptome FASTA using its built-in minimap2-rs engine.
 //   This is the same approach validated in issue #54 of the oarfish repo.
 //
-// Why --reference not --index:
-//   oarfish v0.6.5 does not support --index for reading a prebuilt index.
-//   Only --index-out (write) exists in this version. Each sample rebuilds
-//   the minimap2 index internally from the FASTA at runtime (~10 minutes).
-//   This is a per-run cost with no effect on quantification correctness.
+// Why --annotated (not --reference):
+//   oarfish 0.9.4 removed the single --reference flag. In --reads mode the
+//   transcriptome to map against is supplied via --annotated (reference
+//   transcripts) and/or --novel (assembled transcripts). Our merged FASTA
+//   from gffcompare already combines both, so the whole file is passed as
+//   --annotated. oarfish builds the minimap2 index internally at runtime
+//   (no prebuilt --index required; --index-out could persist one if wanted).
 //
 // Why --filter-group no-filters:
 //   Multi-mapping reads are handled probabilistically by oarfish's EM
@@ -95,7 +97,7 @@ process OARFISH {
 
     # ── Run oarfish ──────────────────────────────────────────────────────
     # --reads      : uBAM mode — extracts sequences, ignores genome coords
-    # --reference  : merged IsoQuant transcriptome (gffcompare-deduplicated)
+    # --annotated  : merged IsoQuant transcriptome (gffcompare-deduplicated)
     # --seq-tech   : ont-drna for direct RNA-seq (controls minimap2 preset)
     # --filter-group no-filters : EM handles multi-mappers probabilistically
     # --model-coverage          : corrects 3' bias in direct RNA coverage
@@ -104,7 +106,7 @@ process OARFISH {
     ${params.oarfish_exe} \\
         --threads          ${task.cpus} \\
         --reads            "${clean_bam}" \\
-        --reference        "${merged_fa}" \\
+        --annotated        "${merged_fa}" \\
         --seq-tech         ${params.seq_tech} \\
         -o                 "${sample_id}" \\
         --filter-group     ${params.oarfish_filter_group} \\

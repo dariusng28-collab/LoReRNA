@@ -11,7 +11,7 @@
 // Runs immediately after MISER, one job per sample.
 // Lightweight — Python + pandas only, no alignment steps.
 //
-// Changelog v1.2.0:
+// Changelog v1.0.0:
 //   miser_qc_summary.py is now staged via an input channel rather
 //   than accessed through ${projectDir}/bin/. With singularity.autoMounts
 //   = false and explicit bind mounts, projectDir may not be visible

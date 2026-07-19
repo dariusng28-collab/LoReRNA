@@ -60,6 +60,16 @@ library(fishpond)
 ############################################################
 cond_tbl <- fread(cond_csv)
 stopifnot(all(c("sample_id", "condition") %in% colnames(cond_tbl)))
+cond_tbl <- cond_tbl[cond_tbl$condition %in% c(cond_a, cond_b), ]
+
+if (nrow(cond_tbl) == 0)
+  stop("No samples found after filtering to condition_a='", cond_a,
+       "' and condition_b='", cond_b,
+       "'. Check --swish_condition_a / --swish_condition_b match the conditions column in conditions.csv.")
+if (length(unique(cond_tbl$condition)) < 2)
+  stop("Only one condition found after filtering ('", unique(cond_tbl$condition),
+       "'). Both condition_a='", cond_a, "' and condition_b='", cond_b,
+       "' must be present in conditions.csv.")
 
 samples    <- cond_tbl$sample_id
 conditions <- cond_tbl$condition
@@ -80,8 +90,9 @@ if (has_pair && has_batch) {
 ############################################################
 # 3. LOAD COUNTS + LENGTHS
 ############################################################
-counts_list <- list()
-length_list <- list()
+counts_list  <- list()
+length_list  <- list()
+tnames_list  <- list()
 
 for (s in samples) {
   qf <- file.path(quant_dir, s, paste0(s, ".quant"))
@@ -89,8 +100,17 @@ for (s in samples) {
   q <- fread(qf)
   counts_list[[s]] <- q$num_reads
   length_list[[s]] <- q$len
-  if (!exists("tx_names")) tx_names <- q$tname
+  tnames_list[[s]] <- q$tname
 }
+
+tx_names <- tnames_list[[samples[1]]]
+for (s in samples[-1]) {
+  if (length(tnames_list[[s]]) != length(tx_names) || !all(tnames_list[[s]] == tx_names))
+    stop("Transcript mismatch between sample '", samples[1], "' and '", s,
+         "': oarfish produced different transcript sets. ",
+         "Ensure all samples were quantified against the same merged_fa.")
+}
+rm(tnames_list)
 
 counts     <- do.call(cbind, counts_list)
 eff_length <- do.call(cbind, length_list)
@@ -428,6 +448,21 @@ cat("  DTU_full_results.csv  |  DTU_all_significant.csv  |  DTU_increased_usage.
 cat("  DGE_full_results.csv  |  DGE_all_significant.csv  |  DGE_upregulated.csv  |  DGE_downregulated.csv\n\n")
 
 cat("Run finished:", format(Sys.time()), "\n")
+
+# MultiQC-compatible summary TSV — picked up by multiqc_config.yml sp: swish_summary
+swish_mqc <- data.frame(
+  Sample   = paste0(cond_b, "_vs_", cond_a),
+  DTE_sig  = nrow(sig_dte),
+  DTU_sig  = nrow(sig_dtu),
+  DGE_sig  = nrow(sig_dge),
+  DTE_up   = sum(sig_dte$log2FC > 0, na.rm = TRUE),
+  DTE_down = sum(sig_dte$log2FC < 0, na.rm = TRUE),
+  DGE_up   = sum(sig_dge$log2FC > 0, na.rm = TRUE),
+  DGE_down = sum(sig_dge$log2FC < 0, na.rm = TRUE)
+)
+write.table(swish_mqc,
+  file.path(logs_dir, "swish_summary_mqc.tsv"),
+  sep = "\t", quote = FALSE, row.names = FALSE)
 
 sink(type = "message")
 sink(type = "output")

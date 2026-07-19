@@ -82,6 +82,7 @@ names(COND_COLOURS) <- c(cond_a, cond_b)
 
 tx2gene   <- as.data.frame(fread(tx2gene_f, header = FALSE, col.names = c("tx_id", "gene")))
 cond_tbl  <- as.data.frame(fread(cond_csv))
+cond_tbl  <- cond_tbl[cond_tbl$condition %in% c(cond_a, cond_b), ]
 samples   <- cond_tbl$sample_id
 
 # Load oarfish counts: normalise to TPM per sample for heatmaps
@@ -156,7 +157,7 @@ top_labels <- function(dt, n = 15, sig_col = "qvalue") {
   sig <- dt[!is.na(dt[[sig_col]]) & dt[[sig_col]] < alpha, ]
   if (nrow(sig) == 0) return(character(0))
   sig <- sig[order(sig[[sig_col]], -abs(sig$log2FC)), ]
-  head(sig$label, n)
+  head(sig$gene, n)
 }
 
 # ── 4. MA plot (ggplot2) ──────────────────────────────────────────────────────

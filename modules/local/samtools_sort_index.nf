@@ -15,7 +15,7 @@
 //   the samtools index step that follows.
 //   Minimum: 512 MB (avoids degenerate configs with very low memory).
 //
-// Changelog v1.2.0:
+// Changelog v1.0.0:
 //   Replaced hardcoded -m 3G with dynamic per-thread memory
 //   calculation using shell arithmetic on Nextflow task variables.
 // ============================================================

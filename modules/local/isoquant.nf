@@ -30,7 +30,7 @@
 //     *.gene_counts.tsv         — gene-level counts
 //     *.read_assignments.tsv.gz — per-read transcript assignments
 //
-// Changelog v1.1.1 (fix #1 — critical):
+// Changelog v1.0.0 (fix #1 — critical):
 //   Corrected transcript_models.gtf path from
 //     ${sample_id}/OUT/OUT.transcript_models.gtf   (default --prefix layout)
 //   to
@@ -56,7 +56,6 @@ process ISOQUANT {
     tuple val(meta), path("${meta.id}/${meta.id}/*.gene_counts.tsv"),          emit: gene_counts
     tuple val(meta), path("${meta.id}/${meta.id}/*.read_assignments.tsv.gz"),  emit: read_assignments
     tuple val(meta), path("${meta.id}.transcript_models.gtf"),      emit: transcript_model_gtf
-    tuple val(meta), path("${meta.id}/"),                           emit: outdir
 
     script:
     def sample_id  = meta.id

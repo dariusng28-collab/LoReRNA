@@ -19,18 +19,17 @@ internal testing.
 
 **2. MisER conda environment could not be built**
 - `containers/environment_miser.yml`: `samtools=1.` is not a valid conda version specifier
-- Fixed: `samtools=1.21`
+- Fixed: `samtools=1.23.1`
 - Impact: fresh conda installs of the MisER environment always failed
 
 ---
 
 ### Scalability
 
-**3. Scratch resolver order**
-- `modules/local/miser.nf`: `$TMPDIR` was tried before `/scratch0`
-- With `scratch = true` in the site config, Nextflow sets `$TMPDIR → /tmp/JOBID/` (a small partition) which was accepted before `/scratch0` was ever checked
-- Fixed: `/scratch0` is now the highest-priority automatic candidate
-- The 40 G guard is now inside `_try_scratch()` so a full-but-present path falls through to the next candidate rather than aborting the job
+**3. MisER node-local scratch**
+- `modules/local/miser.nf`: MisER does heavy random-access I/O on the input BAM. Running it against the NFS-staged symlink saturated shared I/O and caused timeouts.
+- Fixed: the input BAM is copied to node-local scratch first (`/scratch0/$USER/...` by default, overridable per-site with `--miser_scratch_root`), and MisER runs against the local copy.
+- A space guard requires at least 3× the input BAM size (minimum 40 G) of free scratch and fails fast with a clear message if the node cannot provide it.
 
 **4. Site config memory scaling on retry**
 - `conf/sge.config` and all site configs: labels used flat memory values (e.g. `memory = 64.GB`) with no `task.attempt` multiplier
@@ -98,7 +97,7 @@ into a single interactive HTML report via MultiQC.
 | `containers/build_containers.sh` | Local Docker build + push script |
 | `containers/multiqc_config.yml` | MultiQC custom data sections |
 | `containers/environment.yml` | Added multiqc, r-ggplot2, r-ggrepel, r-pheatmap, r-patchwork, r-viridis, r-rcolorbrewer |
-| `test/validate_preflight.sh` | 10-check login-node pre-flight script |
+| `test/validate_preflight.sh` | Login-node pre-flight script (static checks, no cluster jobs) |
 | `test/VALIDATION_RUNBOOK.md` | 4-stage validation guide |
 | `test/samplesheet_2sample.csv` | Minimal validation samplesheet template |
 | `test/samplesheet_paired.csv` | Paired design samplesheet template |

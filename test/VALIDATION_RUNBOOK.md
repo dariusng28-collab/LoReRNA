@@ -192,6 +192,6 @@ not changed, nothing is recomputed.
 | `/scratch0` not visible in container | Bind mount missing | `containerOptions = "-B /scratch0"` in `withName: 'MISER'` |
 | SWISH: `sample_id not found` | Wrong CSV header | `seed:` line in `main.nf` must be `"sample_id,condition,pair,batch\n"` |
 | CLEAN_BAM not in DAG | Process not wired | Check `include { CLEAN_BAM }` and `CLEAN_BAM(...)` in `main.nf` |
-| SWISH_PLOTS: missing R package | Wrong container tag | Ensure `container_lorerna = 'docker://your-hub/lorerna:1.0.0'` |
+| SWISH_PLOTS: missing R package | Wrong container tag | Ensure `container_lorerna = 'docker://your-hub/lorerna:1.1.0'` |
 | MultiQC: empty sections | File naming mismatch | Check `sp:` patterns in `containers/multiqc_config.yml` vs actual filenames |
 | Memory error on retry | Flat memory — no scaling | Use `memory = { 64.GB * task.attempt }` not `memory = 64.GB` |

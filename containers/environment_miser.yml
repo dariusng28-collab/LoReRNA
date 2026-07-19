@@ -5,7 +5,7 @@ channels:
 dependencies:
   - python=3.10
   - pip
-  - samtools=1.21   # fix: was "samtools=1." (broken version string — conda build would fail)
+  - samtools=1.23.1
   - procps-ng
   - pip:
       - MisER==1.0.0
