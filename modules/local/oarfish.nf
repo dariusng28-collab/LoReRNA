@@ -135,4 +135,9 @@ process OARFISH {
     echo "  infreps size   : \$(ls -lh ${sample_id}.infreps.pq | awk '{print \$5}')"
     echo "========================================"
     """
+
+    stub:
+    """
+    touch ${meta.id}.quant ${meta.id}.infreps.pq ${meta.id}.meta_info.json ${meta.id}.ambig_info.tsv
+    """
 }

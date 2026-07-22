@@ -42,4 +42,9 @@ process ISOQUANT_QC {
         --sample "${meta.id}" \\
         --outdir .
     """
+
+    stub:
+    """
+    touch ${meta.id}_isoquant_qc.tsv ${meta.id}_isoquant_mqc.tsv
+    """
 }

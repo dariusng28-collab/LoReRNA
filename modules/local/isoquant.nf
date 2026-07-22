@@ -119,4 +119,13 @@ process ISOQUANT {
 
     echo "SUCCESS: IsoQuant finished for ${sample_id}"
     """
+
+    stub:
+    """
+    mkdir -p ${meta.id}/${meta.id}
+    touch ${meta.id}/${meta.id}/${meta.id}.transcript_counts.tsv \\
+          ${meta.id}/${meta.id}/${meta.id}.gene_counts.tsv \\
+          ${meta.id}/${meta.id}/${meta.id}.read_assignments.tsv.gz \\
+          ${meta.id}.transcript_models.gtf
+    """
 }

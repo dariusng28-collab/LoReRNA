@@ -76,4 +76,11 @@ process SWISH_PLOTS {
         --alpha        ${params.swish_alpha} \\
         --top_n        ${params.swish_top_n}
     """
+
+    stub:
+    """
+    mkdir -p pub_plots
+    touch pub_plots/DTE_publication_plots.pdf pub_plots/DTU_publication_plots.pdf \\
+          pub_plots/DGE_publication_plots.pdf pub_plots/summary_panel.pdf
+    """
 }

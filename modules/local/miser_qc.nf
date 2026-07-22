@@ -46,4 +46,9 @@ process MISER_QC {
         ${min_support_arg} \\
         ${all_events_arg}
     """
+
+    stub:
+    """
+    touch ${meta.id}.rescued_microexons.tsv ${meta.id}.rescued_microexons.bed ${meta.id}.rescue_metrics.tsv
+    """
 }

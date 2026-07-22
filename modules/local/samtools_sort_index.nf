@@ -68,4 +68,9 @@ process SAMTOOLS_SORT_INDEX {
     echo "SUCCESS: ${sample_id}.miser.sorted.bam + .bai"
     echo "Output size: \$(ls -lh ${sample_id}.miser.sorted.bam | awk '{print \$5}')"
     """
+
+    stub:
+    """
+    touch ${meta.id}.miser.sorted.bam ${meta.id}.miser.sorted.bam.bai
+    """
 }

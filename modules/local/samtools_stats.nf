@@ -50,4 +50,9 @@ process SAMTOOLS_STATS {
     echo "Flagstat summary:"
     grep 'mapped (' "${meta.id}_flagstat.txt" | head -2 || true
     """
+
+    stub:
+    """
+    touch ${meta.id}_flagstat.txt ${meta.id}_idxstats.txt ${meta.id}_stats.txt
+    """
 }

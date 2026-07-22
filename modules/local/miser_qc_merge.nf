@@ -36,4 +36,9 @@ process MISER_QC_MERGE {
     echo "Merged \$(ls *.rescue_metrics.tsv | wc -l) samples into all_samples_rescue_metrics_mqc.tsv"
     echo "Rows (excluding header): \$(tail -n +2 all_samples_rescue_metrics_mqc.tsv | wc -l)"
     """
+
+    stub:
+    """
+    touch all_samples_rescue_metrics_mqc.tsv
+    """
 }

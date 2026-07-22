@@ -83,4 +83,9 @@ process CLEAN_BAM {
     echo "Clean BAM : \$(ls -lh ${sample_id}.clean.bam | awk '{print \$5}')"
     echo "SUCCESS: ${sample_id}.clean.bam"
     """
+
+    stub:
+    """
+    touch ${meta.id}.clean.bam
+    """
 }

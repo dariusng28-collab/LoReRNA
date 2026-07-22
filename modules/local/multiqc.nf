@@ -65,4 +65,10 @@ process MULTIQC {
     echo "MultiQC report: \$(ls -lh multiqc_report.html | awk '{print \$5}')"
     echo "SUCCESS: multiqc_report.html"
     """
+
+    stub:
+    """
+    mkdir -p multiqc_report_data multiqc_plots
+    touch multiqc_report.html
+    """
 }

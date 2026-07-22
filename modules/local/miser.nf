@@ -117,4 +117,9 @@ process MISER {
 
     } 2>&1 | tee "${sample_id}.miser.log"
     """
+
+    stub:
+    """
+    touch ${meta.id}.miser.bam ${meta.id}.missed_small.bed ${meta.id}.miser.log
+    """
 }

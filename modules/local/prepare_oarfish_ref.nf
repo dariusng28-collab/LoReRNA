@@ -166,4 +166,9 @@ process PREPARE_OARFISH_REFERENCE {
     echo " tx2gene       : tx2gene.tsv (\${N_TX} mappings)"
     echo "============================================"
     """
+
+    stub:
+    """
+    touch merged_expressed_transcripts.fa tx2gene.tsv gffcmp.combined.gtf gffcmp.stats
+    """
 }
