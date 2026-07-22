@@ -28,8 +28,8 @@ MISER_IMG="${2:-${MISER_IMG:-dariusng28/miser:1.1.0}}"
 
 run() {  # <image> <shell-command>
   case "${ENGINE}" in
-    docker)      docker run --rm "$1" bash -lc "$2" ;;
-    singularity) singularity exec "$1" bash -lc "$2" ;;
+    docker)      docker run --rm "$1" bash -c "$2" ;;
+    singularity) singularity exec "$1" bash -c "$2" ;;
     *) echo "unknown ENGINE='${ENGINE}' (use docker|singularity)"; exit 2 ;;
   esac
 }

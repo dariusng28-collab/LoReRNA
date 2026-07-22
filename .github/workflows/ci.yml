@@ -12,6 +12,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # Pin to the Nextflow version the pipeline is validated against (matches the
+  # HPC's nf-env), so CI tests what you actually run — not bleeding-edge.
+  NXF_VER: 25.04.7
   LORERNA_IMG: dariusng28/lorerna:1.1.0
   MISER_IMG: dariusng28/miser:1.1.0
 
@@ -20,7 +23,7 @@ jobs:
     name: Lint — config + shell + R syntax
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Nextflow
         run: |
@@ -55,7 +58,7 @@ jobs:
     name: Container CLI + R-package contract
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # Directly catches breaking tool upgrades (e.g. oarfish dropping a flag)
       # before they can reach a run. No test dataset required.
