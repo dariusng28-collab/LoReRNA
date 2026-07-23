@@ -1,0 +1,88 @@
+repository_type: pipeline
+nf_core_version: 4.0.2
+
+# LoReRNA follows nf-core conventions but is NOT an nf-core pipeline — it is
+# hosted in its own repository and is not submitted to nf-co.re. The exclusions
+# below switch off checks that only make sense for pipelines living under the
+# nf-core organisation (their CI, their branding, their release infrastructure).
+#
+# Everything that is a genuine quality signal is left ON, including:
+#   schema_lint / schema_params / schema_description  — nextflow_schema.json is real
+#   nextflow_config                                   — manifest + reporting + resources
+#   readme / pipeline_todos / merge_markers / system_exit
+#   local_component_structure                         — warns only; see note below
+#
+# Re-check anything switched off here before assuming it does not apply.
+lint:
+  # The nf-core template diff is meaningless for a pipeline that was never
+  # generated from the template.
+  files_unchanged: False
+
+  # nf-test is not adopted yet. This is Phase 2 (minimal test dataset +
+  # end-to-end CI); turn these back on when it lands.
+  nf_test_content: False
+  actions_nf_test: False
+
+  # nf-core runs its own AWS megatests. LoReRNA runs on UCL SGE.
+  actions_awstest: False
+  actions_awsfulltest: False
+
+  # No nf-core/modules are installed — every module in modules/local is local
+  # to this pipeline, so there is no modules.json to track.
+  modules_json: False
+  modules_structure: False
+
+  # RO-Crate metadata is an nf-co.re website feature.
+  rocrate_readme_sync: False
+
+  # Requires `nextflow inspect` against a live container registry; the
+  # equivalent guarantee is provided by test/container_cli_contract.sh in CI.
+  container_configs: False
+
+  # MultiQC config lives at containers/multiqc_config.yml (staged into the
+  # MULTIQC process), not assets/multiqc_config.yml, and does not carry the
+  # nf-core report_comment / report_section_order boilerplate.
+  multiqc_config: False
+
+  files_exist:
+    # ── nf-core org CI and release infrastructure ──────────────────────────
+    - .github/.dockstore.yml
+    - .github/workflows/branch.yml
+    - .github/workflows/linting.yml
+    - .github/workflows/linting_comment.yml
+    - .github/workflows/awstest.yml
+    - .github/workflows/awsfulltest.yml
+    # ── nf-test scaffolding (Phase 2) ──────────────────────────────────────
+    - .github/workflows/nf-test.yml
+    - .github/actions/nf-test/action.yml
+    - .github/actions/get-shards/action.yml
+    - nf-test.config
+    - tests/default.nf.test
+    - conf/test.config
+    - conf/test_full.config
+    # ── nf-core email notification templates (not used) ────────────────────
+    - assets/email_template.html
+    - assets/email_template.txt
+    - assets/sendmail_template.txt
+    - assets/multiqc_config.yml
+    # ── nf-core branding ───────────────────────────────────────────────────
+    - assets/nf-core-lorerna_logo_light.png
+    - docs/images/nf-core-lorerna_logo_light.png
+    - docs/images/nf-core-lorerna_logo_dark.png
+    # ── iGenomes: LoReRNA takes explicit reference paths instead ───────────
+    - conf/igenomes.config
+    - conf/igenomes_ignored.config
+    # ── present under different names in this repo ─────────────────────────
+    # CONTRIBUTING.md is at the repo root, not under docs/.
+    - docs/CONTRIBUTING.md
+    # The changelog is CHANGES.md. Run `git mv CHANGES.md CHANGELOG.md` and
+    # delete this line if you would rather use the conventional name.
+    - CHANGELOG.md
+    - modules.json
+    - ro-crate-metadata.json
+
+  nextflow_config:
+    # LoReRNA's samplesheet parameter is --samplesheet, not nf-core's --input.
+    # Renaming would break every existing run command and every documented
+    # example; the parameter is fully described in nextflow_schema.json.
+    - params.input

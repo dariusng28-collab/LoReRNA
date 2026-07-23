@@ -1,0 +1,4 @@
+*.config linguist-language=nextflow
+*.nf.test linguist-language=nextflow
+modules/**/*.nf linguist-generated=false
+workflows/**/*.nf linguist-generated=false

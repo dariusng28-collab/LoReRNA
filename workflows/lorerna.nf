@@ -106,7 +106,10 @@ workflow LORERNA {
 
     PREPARE_OARFISH_REFERENCE(ch_transcript_models, ch_genome_fasta)
 
-    ch_merged_fa = PREPARE_OARFISH_REFERENCE.out.merged_fa.first()
+    // Both PREPARE_OARFISH_REFERENCE inputs are value channels (.collect() and
+    // Channel.value), so the process runs once and merged_fa is already a value
+    // channel — it can be consumed by all OARFISH tasks without .first().
+    ch_merged_fa = PREPARE_OARFISH_REFERENCE.out.merged_fa
 
     // ── Oarfish quantification ────────────────────────────────────────────
     OARFISH(CLEAN_BAM.out.clean_bam, ch_merged_fa)
