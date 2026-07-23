@@ -61,18 +61,9 @@ custom_data:
         description: "Could not be assigned (includes noninformative)"
         colour: "#95A5A6"
 
-  miser_rescue:
-    id: "miser_rescue"
-    section_name: "MisER Micro-exon Rescue"
-    description: >
-      Per-sample micro-exon rescue summary from MisER.
-      Shows the number of micro-exon events detected and rescued per sample.
-    plot_type: "bargraph"
-    pconfig:
-      id: "miser_rescue_plot"
-      title: "MisER: Micro-exon rescue counts"
-      ylab: "Count"
-    file_format: "tsv"
+  # MisER micro-exon rescue is now emitted as a self-describing multi-dataset
+  # bargraph (per-metric switcher) by bin/miser_rescue_multiqc.py →
+  # miser_rescue_mqc.json, so it needs no custom_data / sp entry here.
 
   swish_summary:
     id: "swish_summary"
@@ -94,8 +85,6 @@ custom_data:
 sp:
   isoquant_assignment:
     fn: "*_isoquant_mqc.tsv"
-  miser_rescue:
-    fn: "*rescue_metrics_mqc.tsv"
   swish_summary:
     fn: "*swish_summary_mqc.tsv"
   samtools/flagstat:

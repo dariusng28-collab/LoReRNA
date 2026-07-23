@@ -71,6 +71,7 @@ workflow LORERNA {
     ch_swish_script        = Channel.value(file("${projectDir}/bin/swish_analysis.R",   checkIfExists: true))
     ch_swish_plots_script  = Channel.value(file("${projectDir}/bin/swish_plots.R",      checkIfExists: true))
     ch_miser_qc_script     = Channel.value(file("${projectDir}/bin/miser_qc_summary.py", checkIfExists: true))
+    ch_miser_mqc_script    = Channel.value(file("${projectDir}/bin/miser_rescue_multiqc.py", checkIfExists: true))
     ch_isoquant_qc_script  = Channel.value(file("${projectDir}/bin/isoquant_qc.py",     checkIfExists: true))
     ch_multiqc_config      = Channel.value(file("${projectDir}/containers/multiqc_config.yml", checkIfExists: true))
 
@@ -81,7 +82,8 @@ workflow LORERNA {
     MISER_QC(MISER.out.micro_exon_bed, ch_miser_qc_script)
 
     MISER_QC_MERGE(
-        MISER_QC.out.metrics.map { meta, tsv -> tsv }.collect()
+        MISER_QC.out.metrics.map { meta, tsv -> tsv }.collect(),
+        ch_miser_mqc_script
     )
 
     // ── Sort + Index ──────────────────────────────────────────────────────
@@ -156,7 +158,7 @@ workflow LORERNA {
         .mix( SAMTOOLS_STATS.out.idxstats.map { meta, f -> f } )
         .mix( SAMTOOLS_STATS.out.stats.map    { meta, f -> f } )
         .mix( ISOQUANT_QC.out.mqc_tsv.map     { meta, f -> f } )
-        .mix( MISER_QC_MERGE.out.merged_metrics )
+        .mix( MISER_QC_MERGE.out.multiqc_json )
         .mix( SWISH.out.mqc_tsv.flatten() )
         .collect()
 
