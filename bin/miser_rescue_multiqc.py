@@ -37,6 +37,18 @@ VIEWS = [
     ("Median exon size",   {"Median exon size (bp)": "median_exon_size"}),
 ]
 
+# Explicit, meaningful colour per category (hex). Avoids the flat/monochrome
+# default: greens = good, reds = failed, blue shades = confidence tiers.
+COLORS = {
+    "Pass rate (%)":         "#2ca02c",  # green
+    "Passed":                "#2ca02c",  # green
+    "Failed":                "#d62728",  # red
+    "Unique micro-exons":    "#9467bd",  # purple
+    "Single-read":           "#aec7e8",  # light blue (lower confidence)
+    "Multi-read":            "#1f77b4",  # dark blue  (higher confidence)
+    "Median exon size (bp)": "#ff7f0e",  # orange
+}
+
 
 def as_number(cell):
     """Parse a numeric TSV cell; return None if empty or non-numeric."""
@@ -90,6 +102,11 @@ def main():
     data = [build_dataset(rows, mapping) for _, mapping in views]
     data_labels = [{"name": name, "ylab": name} for name, _ in views]
 
+    # Colour every category that appears in any view. MultiQC keys bar colours
+    # on category name, so one map covers all datasets.
+    categories = {cat for _, mapping in views for cat in mapping}
+    colours = {cat: COLORS[cat] for cat in categories if cat in COLORS}
+
     report = {
         "id": "miser_rescue",
         "section_name": "MisER Micro-exon Rescue",
@@ -104,6 +121,7 @@ def main():
             "title": "MisER: per-sample rescue metrics",
             "cpswitch": False,          # metrics are on different scales; no counts/% toggle
             "data_labels": data_labels,  # the switcher
+            "colors": colours,           # per-category colours (see note in module docstring)
         },
         "data": data,                    # list of datasets, one per data_label
     }
