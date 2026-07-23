@@ -102,10 +102,11 @@ def main():
     data = [build_dataset(rows, mapping) for _, mapping in views]
     data_labels = [{"name": name, "ylab": name} for name, _ in views]
 
-    # Colour every category that appears in any view. MultiQC keys bar colours
-    # on category name, so one map covers all datasets.
+    # Colour every category that appears in any view. MultiQC honours per-category
+    # colours via a `headers` block with `colour` (same mechanism the working
+    # IsoQuant custom-content section uses); `pconfig.colors` is ignored.
     categories = {cat for _, mapping in views for cat in mapping}
-    colours = {cat: COLORS[cat] for cat in categories if cat in COLORS}
+    headers = {cat: {"colour": COLORS[cat]} for cat in categories if cat in COLORS}
 
     report = {
         "id": "miser_rescue",
@@ -116,12 +117,12 @@ def main():
             "(e.g. low pass rate or few micro-exons) is easy to spot."
         ),
         "plot_type": "bargraph",
+        "headers": headers,              # per-category colours (mechanism IsoQuant uses)
         "pconfig": {
             "id": "miser_rescue_bargraph",
             "title": "MisER: per-sample rescue metrics",
             "cpswitch": False,          # metrics are on different scales; no counts/% toggle
             "data_labels": data_labels,  # the switcher
-            "colors": colours,           # per-category colours (see note in module docstring)
         },
         "data": data,                    # list of datasets, one per data_label
     }
