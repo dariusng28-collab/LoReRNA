@@ -1,0 +1,304 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/dariusng28-collab/LoReRNA/main/nextflow_schema.json",
+  "title": "LoReRNA pipeline parameters",
+  "description": "Long-read RNA-seq: MisER -> IsoQuant -> oarfish -> swish (fishpond)",
+  "type": "object",
+  "$defs": {
+    "input_output_options": {
+      "title": "Input/output options",
+      "type": "object",
+      "fa_icon": "fas fa-terminal",
+      "description": "Define where the pipeline should find input data and save output data.",
+      "required": ["samplesheet", "outdir"],
+      "properties": {
+        "samplesheet": {
+          "type": "string",
+          "format": "file-path",
+          "exists": true,
+          "mimetype": "text/csv",
+          "pattern": "^\\S+\\.csv$",
+          "schema": "assets/schema_input.json",
+          "description": "Path to comma-separated file describing the input samples.",
+          "help_text": "Requires the columns 'sample_name', 'condition' and 'bam'. Optional columns 'pair' (activates paired Wilcoxon in swish) and 'batch' (activates batch-aware swish).",
+          "fa_icon": "fas fa-file-csv"
+        },
+        "outdir": {
+          "type": "string",
+          "format": "directory-path",
+          "description": "The output directory where the results will be saved.",
+          "default": "results",
+          "fa_icon": "fas fa-folder-open"
+        },
+        "publish_mode": {
+          "type": "string",
+          "default": "copy",
+          "enum": ["copy", "symlink", "link", "rellink", "move"],
+          "description": "Nextflow publishDir mode used for all published results.",
+          "help_text": "Use 'copy' for production runs so results survive `nextflow clean`. 'symlink' is faster but results break if the work directory is removed.",
+          "fa_icon": "fas fa-copy"
+        }
+      }
+    },
+    "reference_options": {
+      "title": "Reference genome options",
+      "type": "object",
+      "fa_icon": "fas fa-dna",
+      "description": "Reference genome and annotation files.",
+      "required": ["reference_fasta", "reference_bed12"],
+      "properties": {
+        "reference_fasta": {
+          "type": "string",
+          "format": "file-path",
+          "exists": true,
+          "description": "Genome FASTA file (e.g. GRCh38 primary assembly).",
+          "fa_icon": "fas fa-file"
+        },
+        "reference_bed12": {
+          "type": "string",
+          "format": "file-path",
+          "exists": true,
+          "description": "Annotation in BED12 format, used by MisER for splice-junction correction.",
+          "fa_icon": "fas fa-file"
+        },
+        "reference_gtf": {
+          "type": "string",
+          "format": "file-path",
+          "exists": true,
+          "description": "Annotation GTF/GFF for IsoQuant. Provide either this or --reference_db, not both.",
+          "fa_icon": "fas fa-file"
+        },
+        "reference_db": {
+          "type": "string",
+          "format": "file-path",
+          "exists": true,
+          "description": "Pre-built gffutils database for IsoQuant. Provide either this or --reference_gtf, not both.",
+          "help_text": "Using a pre-built gffutils .db avoids IsoQuant rebuilding the database on every run.",
+          "fa_icon": "fas fa-database"
+        }
+      }
+    },
+    "miser_options": {
+      "title": "MisER options",
+      "type": "object",
+      "fa_icon": "fas fa-cut",
+      "description": "Micro-exon rescue / splice-junction correction.",
+      "properties": {
+        "miser_exe": {
+          "type": "string",
+          "default": "MisER",
+          "description": "MisER executable name.",
+          "hidden": true
+        },
+        "miser_args": {
+          "type": "string",
+          "default": "-s 10 -d 0.2 -f 20 --allTranscripts --fixFlankLen --strandSpecific --setTag",
+          "description": "Additional arguments passed to MisER."
+        },
+        "miser_scratch_root": {
+          "type": "string",
+          "description": "Node-local scratch root used by MisER. Defaults to /scratch0 when unset.",
+          "help_text": "MisER copies the input BAM to node-local scratch to avoid saturating shared NFS. On non-SGE sites set this to your scheduler's local scratch path (e.g. $TMPDIR)."
+        },
+        "miser_qc_min_support": {
+          "type": "integer",
+          "default": 1,
+          "minimum": 1,
+          "description": "Minimum supporting reads for a rescued micro-exon to be reported."
+        },
+        "miser_qc_all_events": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include events that did not pass MisER's realn_flag filter in the exon catalog."
+        }
+      }
+    },
+    "isoquant_options": {
+      "title": "IsoQuant options",
+      "type": "object",
+      "fa_icon": "fas fa-project-diagram",
+      "description": "Transcript discovery and quantification.",
+      "properties": {
+        "isoquant_exe": {
+          "type": "string",
+          "default": "isoquant",
+          "description": "IsoQuant executable name (renamed from isoquant.py in IsoQuant 3.13.0).",
+          "hidden": true
+        },
+        "isoquant_data_type": {
+          "type": "string",
+          "default": "nanopore",
+          "enum": ["nanopore", "pacbio_ccs", "pacbio", "assembly"],
+          "description": "IsoQuant --data_type value."
+        },
+        "isoquant_args": {
+          "type": "string",
+          "default": "--count_exons",
+          "description": "Additional arguments passed to IsoQuant."
+        },
+        "isoquant_complete_genedb": {
+          "type": "boolean",
+          "default": true,
+          "description": "Pass --complete_genedb (appropriate for complete annotations such as GENCODE/Ensembl)."
+        }
+      }
+    },
+    "oarfish_options": {
+      "title": "oarfish options",
+      "type": "object",
+      "fa_icon": "fas fa-fish",
+      "description": "Transcript-level quantification.",
+      "properties": {
+        "seq_tech": {
+          "type": "string",
+          "default": "ont-drna",
+          "enum": ["ont-drna", "ont-cdna", "pac-bio", "pac-bio-hifi"],
+          "description": "Sequencing technology; controls the internal minimap2 preset."
+        },
+        "oarfish_exe": {
+          "type": "string",
+          "default": "oarfish",
+          "description": "oarfish executable name.",
+          "hidden": true
+        },
+        "oarfish_num_bootstraps": {
+          "type": "integer",
+          "default": 100,
+          "minimum": 0,
+          "description": "Bootstrap replicates for inferential uncertainty (required by swish DTU)."
+        },
+        "oarfish_filter_group": {
+          "type": "string",
+          "default": "no-filters",
+          "enum": ["no-filters", "nanocount-filters"],
+          "description": "oarfish alignment filter group. 'no-filters' lets EM handle multi-mappers probabilistically."
+        },
+        "oarfish_args": {
+          "type": "string",
+          "default": "--model-coverage",
+          "description": "Additional arguments passed to oarfish."
+        }
+      }
+    },
+    "swish_options": {
+      "title": "swish / fishpond options",
+      "type": "object",
+      "fa_icon": "fas fa-chart-bar",
+      "description": "Differential transcript/gene analysis.",
+      "required": ["swish_condition_a", "swish_condition_b"],
+      "properties": {
+        "swish_condition_a": {
+          "type": "string",
+          "default": "Control",
+          "description": "Reference condition (denominator), must match a value in the samplesheet 'condition' column."
+        },
+        "swish_condition_b": {
+          "type": "string",
+          "default": "KD",
+          "description": "Comparison condition (numerator), must match a value in the samplesheet 'condition' column."
+        },
+        "swish_min_count": {
+          "type": "integer",
+          "default": 10,
+          "minimum": 0,
+          "description": "Minimum count for a feature to be retained before testing."
+        },
+        "swish_min_n": {
+          "type": "integer",
+          "default": 3,
+          "minimum": 1,
+          "description": "Minimum number of samples meeting min_count."
+        },
+        "swish_nperms": {
+          "type": "integer",
+          "default": 100,
+          "minimum": 1,
+          "description": "Number of permutations for the swish test."
+        },
+        "swish_alpha": {
+          "type": "number",
+          "default": 0.05,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "FDR threshold for calling significance."
+        },
+        "swish_top_n": {
+          "type": "integer",
+          "default": 30,
+          "minimum": 1,
+          "description": "Number of top features shown in publication heatmaps."
+        }
+      }
+    },
+    "container_options": {
+      "title": "Container options",
+      "type": "object",
+      "fa_icon": "fas fa-box",
+      "description": "Container images used by the pipeline.",
+      "properties": {
+        "container_lorerna": {
+          "type": "string",
+          "default": "docker://dariusng28/lorerna:1.1.0",
+          "description": "Container providing samtools, IsoQuant, oarfish, MultiQC and R."
+        },
+        "container_miser": {
+          "type": "string",
+          "default": "docker://dariusng28/miser:1.1.0",
+          "description": "Container providing MisER, pysam and samtools."
+        }
+      }
+    },
+    "tool_executables": {
+      "title": "Tool executables",
+      "type": "object",
+      "fa_icon": "fas fa-wrench",
+      "description": "Executable names, overridable for unusual environments.",
+      "properties": {
+        "gffcompare_exe": { "type": "string", "default": "gffcompare", "hidden": true, "description": "gffcompare executable name." },
+        "gffread_exe":    { "type": "string", "default": "gffread",    "hidden": true, "description": "gffread executable name." },
+        "samtools_exe":   { "type": "string", "default": "samtools",   "hidden": true, "description": "samtools executable name." },
+        "rscript_exe":    { "type": "string", "default": "Rscript",    "hidden": true, "description": "Rscript executable name." }
+      }
+    },
+    "max_job_request_options": {
+      "title": "Maximum job request options",
+      "type": "object",
+      "fa_icon": "fab fa-acquisitions-incorporated",
+      "description": "Caps applied to per-process resource requests.",
+      "properties": {
+        "max_cpus": {
+          "type": "integer",
+          "default": 16,
+          "minimum": 1,
+          "description": "Maximum number of CPUs that can be requested for any single job.",
+          "hidden": true
+        },
+        "max_memory": {
+          "type": "string",
+          "default": "128.GB",
+          "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
+          "description": "Maximum amount of memory that can be requested for any single job.",
+          "hidden": true
+        },
+        "max_time": {
+          "type": "string",
+          "default": "72.h",
+          "pattern": "^(\\d+\\.?\\s*(s|m|h|d|day)\\s*)+$",
+          "description": "Maximum amount of time that can be requested for any single job.",
+          "hidden": true
+        }
+      }
+    }
+  },
+  "allOf": [
+    { "$ref": "#/$defs/input_output_options" },
+    { "$ref": "#/$defs/reference_options" },
+    { "$ref": "#/$defs/miser_options" },
+    { "$ref": "#/$defs/isoquant_options" },
+    { "$ref": "#/$defs/oarfish_options" },
+    { "$ref": "#/$defs/swish_options" },
+    { "$ref": "#/$defs/container_options" },
+    { "$ref": "#/$defs/tool_executables" },
+    { "$ref": "#/$defs/max_job_request_options" }
+  ]
+}

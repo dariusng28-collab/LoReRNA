@@ -55,6 +55,9 @@ include { SWISH                     } from './modules/local/swish'
 include { SWISH_PLOTS               } from './modules/local/swish_plots'
 include { MULTIQC                   } from './modules/local/multiqc'
 
+// Parameter + samplesheet validation (nextflow_schema.json, assets/schema_input.json)
+include { validateParameters; paramsSummaryLog } from 'plugin/nf-schema'
+
 workflow LORERNA {
 
     take:
@@ -179,20 +182,15 @@ workflow LORERNA {
 
 workflow {
 
-    // ── Required parameter validation ─────────────────────────────────────
-    // ── seq_tech validation ──────────────────────────────────────────────
-    def valid_seq_tech = ['ont-drna', 'ont-cdna', 'pac-bio', 'pac-bio-hifi']
-    if (!(params.seq_tech in valid_seq_tech)) {
-        error """
-        Invalid --seq_tech value: '${params.seq_tech}'
-        Valid values: ${valid_seq_tech.join(', ')}
-        Example: --seq_tech ont-drna
-        """
-    }
+    // ── Parameter validation ──────────────────────────────────────────────
+    // Types, required params, enums (seq_tech, filter groups, publish_mode) and
+    // the samplesheet columns are all validated against nextflow_schema.json /
+    // assets/schema_input.json by nf-schema.
+    validateParameters()
+    log.info paramsSummaryLog(workflow)
 
-    ['samplesheet', 'reference_fasta', 'reference_bed12'].each { p ->
-        if (!params[p]) error "Missing required parameter: --${p}"
-    }
+    // Cross-parameter rule that JSON Schema expresses poorly: exactly one of
+    // --reference_gtf / --reference_db must be given.
     if (!params.reference_gtf && !params.reference_db)
         error "Provide either --reference_gtf or --reference_db (not both)"
     if (params.reference_gtf && params.reference_db)
