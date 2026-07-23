@@ -1,0 +1,41 @@
+name: Feature request
+description: Suggest a new capability or an improvement
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the limitation you're hitting, rather than jumping to a solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What would you like the pipeline to do?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of the pipeline?
+      options:
+        - MisER / micro-exon rescue
+        - Alignment handling (samtools, BAM cleaning)
+        - IsoQuant / transcript discovery
+        - Reference preparation (gffcompare, gffread, tx2gene)
+        - oarfish / quantification
+        - swish / differential analysis
+        - Plots and MultiQC reporting
+        - Configuration, containers or portability
+        - Documentation
+        - Other
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you've thought about, and why they fall short.
