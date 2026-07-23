@@ -158,7 +158,7 @@ workflow LORERNA {
         .mix( SAMTOOLS_STATS.out.idxstats.map { meta, f -> f } )
         .mix( SAMTOOLS_STATS.out.stats.map    { meta, f -> f } )
         .mix( ISOQUANT_QC.out.mqc_tsv.map     { meta, f -> f } )
-        .mix( MISER_QC_MERGE.out.multiqc_json )
+        .mix( MISER_QC_MERGE.out.multiqc_tsvs.flatten() )
         .mix( SWISH.out.mqc_tsv.flatten() )
         .collect()
 

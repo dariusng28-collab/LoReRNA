@@ -29,7 +29,7 @@ process MISER_QC_MERGE {
 
     output:
     path "all_samples_rescue_metrics_mqc.tsv", emit: merged_metrics
-    path "miser_rescue_mqc.json",              emit: multiqc_json
+    path "miser_*_mqc.tsv",                    emit: multiqc_tsvs
 
     script:
     """
@@ -40,17 +40,19 @@ process MISER_QC_MERGE {
     awk 'FNR==1 && NR!=1 {next} {print}' *.rescue_metrics.tsv \\
         > all_samples_rescue_metrics_mqc.tsv
 
-    # Build the MultiQC per-metric switcher bargraph from the merged table.
+    # Split into scale-coherent, colour-able MultiQC tables (one per metric group).
     python3 "${script}" \\
         --input  all_samples_rescue_metrics_mqc.tsv \\
-        --output miser_rescue_mqc.json
+        --outdir .
 
-    echo "Merged \$(ls *.rescue_metrics.tsv | wc -l) samples; wrote miser_rescue_mqc.json"
+    echo "Merged \$(ls *.rescue_metrics.tsv | wc -l) samples; wrote \$(ls miser_*_mqc.tsv | wc -l) MultiQC tables"
     echo "Rows (excluding header): \$(tail -n +2 all_samples_rescue_metrics_mqc.tsv | wc -l)"
     """
 
     stub:
     """
-    touch all_samples_rescue_metrics_mqc.tsv miser_rescue_mqc.json
+    touch all_samples_rescue_metrics_mqc.tsv \\
+          miser_passrate_mqc.tsv miser_events_mqc.tsv \\
+          miser_support_mqc.tsv miser_exonsize_mqc.tsv
     """
 }
