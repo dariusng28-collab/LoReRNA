@@ -21,7 +21,6 @@ process MISER_QC_MERGE {
     tag "all_samples"
     label 'process_single'
 
-    publishDir "${params.outdir}/01_miser_qc", mode: params.publish_mode
 
     input:
     path metrics_files   // collected: all *.rescue_metrics.tsv files

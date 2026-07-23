@@ -24,8 +24,6 @@ process SWISH_PLOTS {
     tag "all_samples"
     label 'process_medium'
 
-    publishDir "${params.outdir}/06_swish/publication_plots", saveAs: { it.replaceFirst("pub_plots/", "") }, mode: params.publish_mode
-
     input:
     path csv_results           // collected: all *.csv from SWISH results dir
     path quant_files           // collected: all *.quant files (flat-staged)

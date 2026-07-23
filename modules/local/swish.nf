@@ -34,8 +34,6 @@ process SWISH {
     tag "all_samples"
     label 'process_high'   // 8 CPUs, 32 GB — overridden by site config
 
-    publishDir "${params.outdir}/06_swish", mode: params.publish_mode
-
     input:
     path quant_files        // collected: all *.quant files (staged flat)
     path infrep_files       // collected: all *.infreps.pq files (staged flat)

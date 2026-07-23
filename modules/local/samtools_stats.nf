@@ -22,8 +22,6 @@ process SAMTOOLS_STATS {
     tag  "${meta.id}"
     label 'process_low'
 
-    publishDir "${params.outdir}/07_multiqc/samtools", mode: params.publish_mode
-
     input:
     tuple val(meta), path(sorted_bam), path(bai)
 

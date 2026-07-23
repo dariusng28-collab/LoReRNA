@@ -23,8 +23,6 @@ process ISOQUANT_QC {
     tag  "${meta.id}"
     label 'process_low'
 
-    publishDir "${params.outdir}/07_multiqc/isoquant_qc", mode: params.publish_mode
-
     input:
     tuple val(meta), path(read_assignments_gz)
     path  script     // isoquant_qc.py staged via Channel.value() in main.nf

@@ -3,8 +3,6 @@ process MISER {
     tag "${meta.id}"
     label 'process_miser'
 
-    publishDir "${params.outdir}/01_miser", mode: params.publish_mode
-
     input:
     tuple val(meta), path(bam)
     path  genome_fasta
