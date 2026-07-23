@@ -61,84 +61,9 @@ custom_data:
         description: "Could not be assigned (includes noninformative)"
         colour: "#95A5A6"
 
-  # MisER micro-exon rescue — split into scale-coherent, coloured bargraphs by
-  # bin/miser_rescue_multiqc.py (one *_mqc.tsv per metric group). Colours are
-  # applied here via headers (the mechanism MultiQC honours for custom content).
-
-  miser_passrate:
-    id: "miser_passrate"
-    section_name: "MisER — Read-event pass rate"
-    description: >
-      Percentage of MisER read events that passed the realignment filter, per sample.
-    plot_type: "bargraph"
-    pconfig:
-      id: "miser_passrate_plot"
-      title: "MisER: read-event pass rate (%)"
-      ylab: "Pass rate (%)"
-      cpswitch: false
-    file_format: "tsv"
-    headers:
-      pass_rate:
-        title: "Pass rate (%)"
-        colour: "#2ca02c"
-
-  miser_events:
-    id: "miser_events"
-    section_name: "MisER — Read events"
-    description: >
-      MisER read events per sample, split into passed vs failed.
-    plot_type: "bargraph"
-    pconfig:
-      id: "miser_events_plot"
-      title: "MisER: passed vs failed read events"
-      ylab: "Read events"
-      stacking: "normal"
-    file_format: "tsv"
-    headers:
-      passed:
-        title: "Passed"
-        colour: "#2ca02c"
-      failed:
-        title: "Failed"
-        colour: "#d62728"
-
-  miser_support:
-    id: "miser_support"
-    section_name: "MisER — Micro-exon read support"
-    description: >
-      Unique rescued micro-exons split by read support: single-read vs
-      multi-read (their sum is the total unique micro-exons).
-    plot_type: "bargraph"
-    pconfig:
-      id: "miser_support_plot"
-      title: "MisER: micro-exon read support"
-      ylab: "Micro-exons"
-      stacking: "normal"
-    file_format: "tsv"
-    headers:
-      single_read:
-        title: "Single-read"
-        colour: "#aec7e8"
-      multi_read:
-        title: "Multi-read"
-        colour: "#1f77b4"
-
-  miser_exonsize:
-    id: "miser_exonsize"
-    section_name: "MisER — Median micro-exon size"
-    description: >
-      Median rescued micro-exon size (bp) per sample.
-    plot_type: "bargraph"
-    pconfig:
-      id: "miser_exonsize_plot"
-      title: "MisER: median micro-exon size (bp)"
-      ylab: "bp"
-      cpswitch: false
-    file_format: "tsv"
-    headers:
-      median_size:
-        title: "Median size (bp)"
-        colour: "#ff7f0e"
+  # MisER micro-exon rescue is now emitted as a self-describing multi-dataset
+  # bargraph (per-metric switcher) by bin/miser_rescue_multiqc.py →
+  # miser_rescue_mqc.json, so it needs no custom_data / sp entry here.
 
   swish_summary:
     id: "swish_summary"
@@ -160,14 +85,6 @@ custom_data:
 sp:
   isoquant_assignment:
     fn: "*_isoquant_mqc.tsv"
-  miser_passrate:
-    fn: "miser_passrate_mqc.tsv"
-  miser_events:
-    fn: "miser_events_mqc.tsv"
-  miser_support:
-    fn: "miser_support_mqc.tsv"
-  miser_exonsize:
-    fn: "miser_exonsize_mqc.tsv"
   swish_summary:
     fn: "*swish_summary_mqc.tsv"
   samtools/flagstat:
