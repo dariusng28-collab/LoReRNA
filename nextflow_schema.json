@@ -259,35 +259,6 @@
         "samtools_exe":   { "type": "string", "default": "samtools",   "hidden": true, "description": "samtools executable name." },
         "rscript_exe":    { "type": "string", "default": "Rscript",    "hidden": true, "description": "Rscript executable name." }
       }
-    },
-    "max_job_request_options": {
-      "title": "Maximum job request options",
-      "type": "object",
-      "fa_icon": "fab fa-acquisitions-incorporated",
-      "description": "Caps applied to per-process resource requests.",
-      "properties": {
-        "max_cpus": {
-          "type": "integer",
-          "default": 16,
-          "minimum": 1,
-          "description": "Maximum number of CPUs that can be requested for any single job.",
-          "hidden": true
-        },
-        "max_memory": {
-          "type": "string",
-          "default": "128.GB",
-          "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
-          "description": "Maximum amount of memory that can be requested for any single job.",
-          "hidden": true
-        },
-        "max_time": {
-          "type": "string",
-          "default": "72.h",
-          "pattern": "^(\\d+\\.?\\s*(s|m|h|d|day)\\s*)+$",
-          "description": "Maximum amount of time that can be requested for any single job.",
-          "hidden": true
-        }
-      }
     }
   },
   "allOf": [
@@ -298,7 +269,6 @@
     { "$ref": "#/$defs/oarfish_options" },
     { "$ref": "#/$defs/swish_options" },
     { "$ref": "#/$defs/container_options" },
-    { "$ref": "#/$defs/tool_executables" },
-    { "$ref": "#/$defs/max_job_request_options" }
+    { "$ref": "#/$defs/tool_executables" }
   ]
 }
