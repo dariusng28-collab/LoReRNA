@@ -44,6 +44,7 @@ Input BAMs (genome-aligned, e.g. from minimap2)
 - [Samplesheet format](#samplesheet-format)
 - [Parameters](#parameters)
 - [Output structure](#output-structure)
+- [Exploring the results](#exploring-the-results)
 - [Site configuration](#site-configuration)
 - [Building containers](#building-containers)
 - [Validation](#validation)
@@ -325,6 +326,29 @@ results/
     ├── dag.html                         execution graph
     └── trace.txt                        raw per-task trace
 ```
+
+---
+
+## Exploring the results
+
+`06_swish/publication_plots/` covers the top `--swish_top_n` features (default
+30) and writes DTE, DTU and DGE to separate PDFs. For the full tables, or to
+inspect one gene across all three analyses at once, `lorerna-explorer/`
+contains a Shiny application that reads the CSVs in `06_swish/results/`:
+
+```bash
+Rscript -e 'shiny::runApp("lorerna-explorer")'
+```
+
+Or without a local checkout:
+
+```bash
+Rscript -e 'shiny::runGitHub("LoReRNA", "dariusng28-collab", ref = "release/container-v1.1.0", subdir = "lorerna-explorer")'
+```
+
+It runs locally and reads local files. Requirements, input format and known
+limitations are documented in
+[`lorerna-explorer/README.md`](lorerna-explorer/README.md).
 
 ---
 

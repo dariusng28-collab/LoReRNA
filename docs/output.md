@@ -106,6 +106,21 @@ Differential analysis via fishpond/swish. Three analyses are run:
 Result columns include `log2FC` (as `condition_b / condition_a`), `pvalue`,
 `qvalue` and `log10mean`.
 
+### Browsing these results interactively
+
+The heatmaps are capped by `--swish_top_n`, and DTE, DTU and DGE are written to
+separate PDFs. To explore the full tables, or to see a single gene across all
+three analyses at once, `lorerna-explorer/` contains a Shiny application that
+reads the CSVs in `06_swish/results/`:
+
+```bash
+Rscript -e 'shiny::runApp("lorerna-explorer")'
+```
+
+It runs locally and reads local files. See
+[`lorerna-explorer/README.md`](../lorerna-explorer/README.md) for requirements
+and usage.
+
 ## 07_multiqc/
 
 - `multiqc_report.html` — the aggregated QC report (start here)
