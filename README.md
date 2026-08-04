@@ -346,7 +346,8 @@ Or without a local checkout:
 Rscript -e 'shiny::runGitHub("LoReRNA", "dariusng28-collab", ref = "release/container-v1.1.0", subdir = "lorerna-explorer")'
 ```
 
-It runs locally and reads local files. Requirements, input format and known
+Run locally it reads local files and nothing leaves your machine; a hosted copy
+processes uploads on its host's servers. Requirements, input format and known
 limitations are documented in
 [`lorerna-explorer/README.md`](lorerna-explorer/README.md).
 

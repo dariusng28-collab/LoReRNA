@@ -318,6 +318,16 @@ ui <- page_sidebar(
     fileInput("files", "Results tables",
               accept = c(".csv", ".tsv", ".txt"), multiple = TRUE),
 
+    # Wording holds for both deployments: run locally, nothing leaves the
+    # machine; run from the hosted copy, files reach a third-party server.
+    tags$div(
+      class = "note",
+      "Files are read by whichever machine runs this app. On the hosted copy ",
+      "at shinyapps.io that is a third-party server, and uploads are held for ",
+      "the session only. Run the app locally and nothing leaves your machine. ",
+      "Do not upload data you are not permitted to share externally."
+    ),
+
     accordion(
       open = FALSE,
       accordion_panel(

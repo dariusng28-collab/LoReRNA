@@ -70,8 +70,12 @@ Rscript -e 'shiny::runGitHub("LoReRNA", "dariusng28-collab", ref = "release/cont
 The `ref` argument is required while the application resides on the release
 branch, and can be dropped once that branch is merged to `main`.
 
-Results are then loaded through the sidebar. The application runs locally and
-reads local files; nothing is transmitted anywhere.
+Results are then loaded through the sidebar.
+
+Files are read by whichever machine runs the application. Run locally, nothing
+leaves your machine. Run from a hosted copy, uploads are processed on that
+host's servers and held for the session. Do not upload data you are not
+permitted to share with a third-party host — run it locally instead.
 
 ## Input
 
