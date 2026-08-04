@@ -74,8 +74,11 @@ jobs:
         with:
           python-version: "3.12"
 
+      # Pinned for the same reason as NXF_VER: an unpinned install means a new
+      # nf-core/tools release can fail CI on a commit that changed nothing.
+      # Bump deliberately, not by surprise.
       - name: Install nf-core tools
-        run: pip install nf-core
+        run: pip install 'nf-core==4.1.0'
 
       - name: Lint
         run: nf-core pipelines lint --dir .
