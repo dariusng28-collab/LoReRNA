@@ -54,6 +54,32 @@ jobs:
               Rscript -e "invisible(parse(file='$f'))"
           done
 
+  # Checks the repository against nf-core conventions. The exclusions in
+  # .nf-core.yml are what make this meaningful rather than noisy: LoReRNA
+  # follows nf-core structure but is not hosted under the nf-core organisation,
+  # so their CI, branding and release infrastructure checks do not apply.
+  # Running it here means nobody has to install nf-core tools locally.
+  nf-core-lint:
+    name: nf-core lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Nextflow
+        run: |
+          curl -s https://get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install nf-core tools
+        run: pip install nf-core
+
+      - name: Lint
+        run: nf-core pipelines lint --dir .
+
   container-contract:
     name: Container CLI + R-package contract
     runs-on: ubuntu-latest
