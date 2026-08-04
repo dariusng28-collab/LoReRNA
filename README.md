@@ -541,6 +541,20 @@ nextflow run main.nf \
 
 ## Troubleshooting
 
+### Container image fails to pull
+
+Nextflow pulls both images automatically on first use, so this normally needs
+no action. It fails when the environment points Singularity's build scratch at
+a path that does not exist on the machine running the pull — typically a
+cluster that sets `SINGULARITY_TMPDIR` to node-local scratch, which exists on
+compute nodes but not on the head node.
+
+| Symptom | Likely cause | Fix |
+|---------|-------------|-----|
+| `failed to create build parent dir: stat /<path>: no such file or directory` | `SINGULARITY_TMPDIR` points somewhere absent on this node | `export SINGULARITY_TMPDIR=/tmp` (needs a few GB free) |
+| Pull times out inside a scheduled job | Several tasks racing to pull the same uncached image | Pre-pull once before launching: `singularity pull docker://dariusng28/lorerna:1.1.0` |
+| `Disk quota exceeded` during pull | Build scratch on a full filesystem | Point `SINGULARITY_TMPDIR` at a filesystem with ~5 GB free |
+
 ### MisER: "Not enough scratch space"
 
 | Symptom | Likely cause | Fix |
