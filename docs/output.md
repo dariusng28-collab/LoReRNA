@@ -117,8 +117,10 @@ reads the CSVs in `06_swish/results/`:
 Rscript -e 'shiny::runApp("lorerna-explorer")'
 ```
 
-Run this way it reads local files and nothing leaves your machine; a hosted copy
-processes uploads on its host's servers. See
+A hosted copy runs at <https://darius28.shinyapps.io/lorerna-explorer/>.
+
+Run locally it reads local files and nothing leaves your machine; the hosted
+copy processes uploads on a third-party server. See
 [`lorerna-explorer/README.md`](../lorerna-explorer/README.md) for requirements
 and usage.
 

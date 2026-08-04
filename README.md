@@ -336,6 +336,12 @@ results/
 inspect one gene across all three analyses at once, `lorerna-explorer/`
 contains a Shiny application that reads the CSVs in `06_swish/results/`:
 
+A hosted copy runs at
+**<https://darius28.shinyapps.io/lorerna-explorer/>** and needs nothing
+installed.
+
+To run it yourself:
+
 ```bash
 Rscript -e 'shiny::runApp("lorerna-explorer")'
 ```

@@ -55,6 +55,11 @@ install.packages(c("shiny", "bslib", "dplyr", "tidyr", "ggplot2", "plotly", "DT"
 
 ## Usage
 
+A hosted copy runs at
+**<https://darius28.shinyapps.io/lorerna-explorer/>** and needs nothing
+installed. Note that uploads to it are processed on a third-party server — see
+the note below before using it for data you may not share externally.
+
 From a local checkout:
 
 ```bash
