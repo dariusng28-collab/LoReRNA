@@ -33,6 +33,37 @@ workflow {
     if (params.reference_gtf && params.reference_db)
         error "Provide only one of --reference_gtf or --reference_db"
 
+    // ── Container build scratch ───────────────────────────────────────────
+    // Singularity builds an image by unpacking OCI layers into a scratch
+    // directory, resolved as SINGULARITY_TMPDIR -> TMPDIR -> /tmp. Schedulers
+    // routinely point TMPDIR at node-local scratch, which exists on compute
+    // nodes but not on the login node where `nextflow run` performs the pull.
+    // Left to fail on its own this surfaces minutes later as a Singularity
+    // error about a "build parent dir", which says nothing about the cause.
+    // Checked here so it fails immediately, with something actionable.
+    if (workflow.containerEngine == 'singularity') {
+        def sing_tmp = System.getenv('SINGULARITY_TMPDIR')
+        def plain_tmp = System.getenv('TMPDIR')
+        def scratch = sing_tmp ?: plain_tmp ?: '/tmp'
+        def source = sing_tmp ? 'SINGULARITY_TMPDIR' : (plain_tmp ? 'TMPDIR' : 'the default')
+        if (!file(scratch).exists()) {
+            error """
+            |Singularity image build scratch does not exist: ${scratch}
+            |  (taken from ${source})
+            |
+            |Image layers are unpacked there before the .img is written, so every
+            |container pull will fail before any analysis starts. This usually means
+            |the cluster points TMPDIR at node-local scratch that exists on compute
+            |nodes but not on this one.
+            |
+            |Fix: export SINGULARITY_TMPDIR to an existing directory with a few GB
+            |free, then re-run. For example:
+            |
+            |    export SINGULARITY_TMPDIR=/tmp
+            """.stripMargin()
+        }
+    }
+
     // ── Samplesheet parsing ───────────────────────────────────────────────
     ch_samplesheet = Channel
         .fromPath(params.samplesheet, checkIfExists: true)

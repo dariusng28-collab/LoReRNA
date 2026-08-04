@@ -16,6 +16,12 @@ set -euo pipefail
 PIPELINE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PASS=0; FAIL=0
 
+# The workflow body moved from main.nf to workflows/lorerna.nf in the nf-core
+# layout refactor, leaving main.nf a thin entry point. Checks below search both,
+# so they keep working wherever a given statement now lives.
+# An array, not a string: the checkout path may contain spaces.
+NF_SRC=("${PIPELINE_DIR}/main.nf" "${PIPELINE_DIR}/workflows/lorerna.nf")
+
 _pass() { echo "  PASS  $1"; PASS=$(( PASS + 1 )); }
 _fail() { echo "  FAIL  $1"; FAIL=$(( FAIL + 1 )); }
 _sec()  { echo; echo "── $1 ──────────────────────────────────────────────────"; }
@@ -29,7 +35,7 @@ echo "============================================================"
 # ── 1. Conditions CSV header ─────────────────────────────────────────────────
 _sec "1 — conditions CSV seed uses sample_id"
 
-SEED=$(grep 'seed:' "${PIPELINE_DIR}/main.nf" | head -1)
+SEED=$(grep 'seed:' "${NF_SRC[@]}" 2>/dev/null | head -1 || true)
 if echo "${SEED}" | grep -q '"sample_id,condition'; then
     _pass "conditions CSV seed uses 'sample_id'"
 else
@@ -75,7 +81,7 @@ grep -q 'emit: outdir' "${PIPELINE_DIR}/modules/local/isoquant.nf" \
     && _fail "isoquant.nf still has 'emit: outdir' — triple-nested output dir will appear" \
     || _pass "isoquant.nf: emit: outdir removed"
 
-grep -q 'ISOQUANT\.out\.outdir' "${PIPELINE_DIR}/main.nf" \
+grep -q 'ISOQUANT\.out\.outdir' "${NF_SRC[@]}" \
     && _fail "main.nf still references ISOQUANT.out.outdir" \
     || _pass "main.nf: no reference to ISOQUANT.out.outdir"
 
@@ -97,9 +103,11 @@ MISER_TAG=$(grep -oE "miser:[0-9]+\.[0-9]+\.[0-9]+"     "${PIPELINE_DIR}/nextflo
 # ── 6. swish publication plots publishDir fix (v1.0.0 fix) ──────────────────
 _sec "6 — swish_plots.nf publishDir has saveAs to strip pub_plots/"
 
-grep -q 'saveAs.*replaceFirst.*pub_plots' "${PIPELINE_DIR}/modules/local/swish_plots.nf" \
-    && _pass "swish_plots.nf: saveAs strips pub_plots/ prefix" \
-    || _fail "swish_plots.nf: missing saveAs — PDFs will nest under publication_plots/pub_plots/"
+# publishDir moved out of the modules into conf/modules.config, so the saveAs
+# that strips the pub_plots/ prefix now lives there.
+grep -q 'saveAs.*replaceFirst.*pub_plots' "${PIPELINE_DIR}/conf/modules.config" \
+    && _pass "conf/modules.config: SWISH_PLOTS saveAs strips pub_plots/ prefix" \
+    || _fail "conf/modules.config: missing saveAs — PDFs will nest under publication_plots/pub_plots/"
 
 grep -q 'conditions\.csv.*continue' "${PIPELINE_DIR}/modules/local/swish_plots.nf" \
     && _pass "swish_plots.nf: conditions.csv correctly excluded from results/ move" \
@@ -160,7 +168,7 @@ _sec "11 — CLEAN_BAM process exists and is wired in main.nf"
     && _pass "modules/local/clean_bam.nf exists" \
     || _fail "modules/local/clean_bam.nf MISSING"
 
-grep -q 'CLEAN_BAM' "${PIPELINE_DIR}/main.nf" \
+grep -q 'CLEAN_BAM' "${NF_SRC[@]}" \
     && _pass "CLEAN_BAM wired in main.nf" \
     || _fail "CLEAN_BAM not referenced in main.nf"
 
@@ -179,15 +187,15 @@ grep -v '^[[:space:]]*//' "${PIPELINE_DIR}/modules/local/samtools_sort_index.nf"
 # ── 13. pair/batch columns flow to conditions CSV ────────────────────────────
 _sec "13 — pair/batch samplesheet columns flow to conditions CSV"
 
-grep -q 'meta.pair'  "${PIPELINE_DIR}/main.nf" \
+grep -q 'meta.pair'  "${NF_SRC[@]}" \
     && _pass "main.nf: 'pair' column read into meta" \
     || _fail "main.nf: 'pair' column not read"
 
-grep -q 'meta.batch' "${PIPELINE_DIR}/main.nf" \
+grep -q 'meta.batch' "${NF_SRC[@]}" \
     && _pass "main.nf: 'batch' column read into meta" \
     || _fail "main.nf: 'batch' column not read"
 
-grep 'seed:' "${PIPELINE_DIR}/main.nf" | head -1 | grep -q 'pair.*batch' \
+grep 'seed:' "${NF_SRC[@]}" 2>/dev/null | head -1 | grep -q 'pair.*batch' \
     && _pass "conditions CSV seed includes pair and batch columns" \
     || _fail "conditions CSV seed missing pair/batch columns"
 
@@ -230,9 +238,12 @@ grep -q 'all_samples_rescue_metrics_mqc.tsv' "${PIPELINE_DIR}/modules/local/mise
     && _pass "miser_qc_merge.nf: output is all_samples_rescue_metrics_mqc.tsv" \
     || _fail "miser_qc_merge.nf: missing _mqc suffix — MultiQC will ignore MisER metrics"
 
-grep -q 'rescue_metrics_mqc.tsv' "${PIPELINE_DIR}/containers/multiqc_config.yml" \
-    && _pass "multiqc_config.yml: miser_rescue fn matches *rescue_metrics_mqc.tsv" \
-    || _fail "multiqc_config.yml: miser_rescue fn does not match the merged filename"
+# The MisER section is now a self-describing custom-content file written by
+# bin/miser_rescue_multiqc.py, so it deliberately has no custom_data / sp entry
+# in multiqc_config.yml. Check the emitting module instead.
+grep -q 'miser_rescue_mqc.json' "${PIPELINE_DIR}/modules/local/miser_qc_merge.nf" \
+    && _pass "miser_qc_merge.nf: emits miser_rescue_mqc.json for MultiQC" \
+    || _fail "miser_qc_merge.nf: no miser_rescue_mqc.json — MisER section will be absent from the report"
 
 # ── 18. SWISH summary reaches MultiQC (Issue 10b) ───────────────────────────
 _sec "18 — SWISH summary TSV wired into MultiQC"
@@ -245,7 +256,7 @@ grep -q 'emit: mqc_tsv' "${PIPELINE_DIR}/modules/local/swish.nf" \
     && _pass "swish.nf: mqc_tsv emitted" \
     || _fail "swish.nf: mqc_tsv not emitted"
 
-grep -q 'SWISH.out.mqc_tsv' "${PIPELINE_DIR}/main.nf" \
+grep -q 'SWISH.out.mqc_tsv' "${NF_SRC[@]}" \
     && _pass "main.nf: MultiQC consumes SWISH.out.mqc_tsv" \
     || _fail "main.nf: still mixing SWISH.out.log instead of mqc_tsv"
 
@@ -261,6 +272,55 @@ for pin in 'isoquant=3.13.0' 'oarfish=0.9.4' 'samtools=1.23.1'; do
         && _pass "environment.yml pins ${pin}" \
         || _fail "environment.yml does NOT pin ${pin}"
 done
+
+# ── 20. Container runtime environment ────────────────────────────────────────
+# Checks 1-19 inspect the pipeline's own files. This one checks the environment
+# the pipeline is about to run in, which is where cluster users actually get
+# stuck: Singularity builds an image by unpacking OCI layers into a scratch
+# directory, resolving it as SINGULARITY_TMPDIR -> TMPDIR -> /tmp. Schedulers
+# routinely point TMPDIR at node-local scratch, which exists on compute nodes
+# but not on the login node where `nextflow run` performs the pull. The result
+# is a Singularity-internal error about a "build parent dir" that says nothing
+# about the actual cause.
+_sec "20 — container runtime environment"
+
+_ENGINE=""
+for e in singularity apptainer docker; do
+    command -v "${e}" >/dev/null 2>&1 && { _ENGINE="${e}"; break; }
+done
+if [ -n "${_ENGINE}" ]; then
+    _pass "container engine found: ${_ENGINE}"
+else
+    _fail "no container engine on PATH (need singularity, apptainer or docker)"
+fi
+
+if [ "${_ENGINE}" = "singularity" ] || [ "${_ENGINE}" = "apptainer" ]; then
+    # Resolve the build scratch the same way Singularity does.
+    _TMP="${SINGULARITY_TMPDIR:-${TMPDIR:-/tmp}}"
+    _SRC="SINGULARITY_TMPDIR"
+    [ -n "${SINGULARITY_TMPDIR:-}" ] || _SRC="TMPDIR"
+    [ -n "${SINGULARITY_TMPDIR:-}" ] || [ -n "${TMPDIR:-}" ] || _SRC="default"
+
+    if [ ! -d "${_TMP}" ]; then
+        _fail "image build scratch does not exist: ${_TMP}  (from ${_SRC})"
+        echo "        Singularity cannot unpack image layers there, so every"
+        echo "        container pull will fail before any analysis starts."
+        echo "        Fix: export SINGULARITY_TMPDIR=/tmp   (or any existing"
+        echo "        directory with a few GB free), then re-run."
+    elif [ ! -w "${_TMP}" ]; then
+        _fail "image build scratch is not writable: ${_TMP}  (from ${_SRC})"
+        echo "        Fix: export SINGULARITY_TMPDIR to a writable directory."
+    else
+        _AVAIL=$(df -Pk "${_TMP}" 2>/dev/null | awk 'NR==2 {print int($4/1048576)}')
+        if [ -n "${_AVAIL}" ] && [ "${_AVAIL}" -lt 5 ]; then
+            _fail "image build scratch has only ${_AVAIL} G free: ${_TMP}"
+            echo "        Unpacking the layers needs roughly 5 G. Point"
+            echo "        SINGULARITY_TMPDIR at a filesystem with more room."
+        else
+            _pass "image build scratch usable: ${_TMP} (${_AVAIL:-?} G free, from ${_SRC})"
+        fi
+    fi
+fi
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo
