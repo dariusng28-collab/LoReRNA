@@ -51,6 +51,8 @@ include { PREPARE_OARFISH_REFERENCE } from '../modules/local/prepare_oarfish_ref
 include { OARFISH                   } from '../modules/local/oarfish'
 include { SWISH                     } from '../modules/local/swish'
 include { SWISH_PLOTS               } from '../modules/local/swish_plots'
+include { MISER_VERSION             } from '../modules/local/miser_version'
+include { SOFTWARE_VERSIONS         } from '../modules/local/software_versions'
 include { MULTIQC                   } from '../modules/local/multiqc'
 
 workflow LORERNA {
@@ -153,6 +155,13 @@ workflow LORERNA {
         ch_swish_plots_script
     )
 
+    // ── Software versions ─────────────────────────────────────────────────
+    // Two processes because LoReRNA ships two images and a process runs in
+    // exactly one. Both are new processes, so no existing task hash changes;
+    // only MULTIQC re-runs, which it does on every run regardless.
+    MISER_VERSION()
+    SOFTWARE_VERSIONS( MISER_VERSION.out.versions )
+
     // ── MultiQC — collect all QC outputs ─────────────────────────────────
     ch_multiqc_inputs = Channel.empty()
         .mix( SAMTOOLS_STATS.out.flagstat.map { meta, f -> f } )
@@ -161,6 +170,7 @@ workflow LORERNA {
         .mix( ISOQUANT_QC.out.mqc_tsv.map     { meta, f -> f } )
         .mix( MISER_QC_MERGE.out.multiqc_json )
         .mix( SWISH.out.mqc_tsv.flatten() )
+        .mix( SOFTWARE_VERSIONS.out.mqc_yml )
         .collect()
 
     MULTIQC(ch_multiqc_inputs, ch_multiqc_config)
@@ -175,5 +185,6 @@ workflow LORERNA {
     oarfish_quant     = OARFISH.out.quant
     swish_results     = SWISH.out.csv_results
     swish_plots       = SWISH_PLOTS.out.summary
+    software_versions = SOFTWARE_VERSIONS.out.versions
     multiqc_report    = MULTIQC.out.report
 }
