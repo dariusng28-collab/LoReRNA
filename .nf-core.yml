@@ -52,6 +52,7 @@ lint:
     - .github/workflows/linting_comment.yml
     - .github/workflows/awstest.yml
     - .github/workflows/awsfulltest.yml
+    - .github/workflows/pr-comment.yml
     # ── nf-test scaffolding (Phase 2) ──────────────────────────────────────
     - .github/workflows/nf-test.yml
     - .github/actions/nf-test/action.yml
@@ -66,9 +67,11 @@ lint:
     - assets/sendmail_template.txt
     - assets/multiqc_config.yml
     # ── nf-core branding ───────────────────────────────────────────────────
-    - assets/nf-core-lorerna_logo_light.png
-    - docs/images/nf-core-lorerna_logo_light.png
-    - docs/images/nf-core-lorerna_logo_dark.png
+    # Filenames derive from manifest.name, so the case here must track it:
+    # 'dariusng28-collab/LoReRNA' gives a short_name of 'LoReRNA'.
+    - assets/nf-core-LoReRNA_logo_light.png
+    - docs/images/nf-core-LoReRNA_logo_light.png
+    - docs/images/nf-core-LoReRNA_logo_dark.png
     # ── iGenomes: LoReRNA takes explicit reference paths instead ───────────
     - conf/igenomes.config
     - conf/igenomes_ignored.config
@@ -86,3 +89,17 @@ lint:
     # Renaming would break every existing run command and every documented
     # example; the parameter is fully described in nextflow_schema.json.
     - params.input
+
+    # These three assert membership of the nf-core organisation, which LoReRNA
+    # deliberately is not. They are not quality checks and there is nothing to
+    # fix: satisfying them would mean renaming the pipeline to nf-core/lorerna
+    # and rehosting it under github.com/nf-core.
+    - manifest.name
+    - manifest.homePage
+
+    # Guards all three custom-config checks (custom_config_version,
+    # custom_config_base, and the institutional profile-loading lines). These
+    # wire a pipeline into nf-core/configs, the shared repository of
+    # institutional cluster profiles. LoReRNA ships its own site configs in
+    # conf/ (sge, slurm, lsf) and is not registered there.
+    - custom_config
