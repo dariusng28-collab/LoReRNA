@@ -56,7 +56,7 @@ Input BAMs (genome-aligned, e.g. from minimap2)
 
 | Dependency | Version | Notes |
 |------------|---------|-------|
-| [Nextflow](https://www.nextflow.io/) | ≥ 23.10.0 | Requires Java 11+ |
+| [Nextflow](https://www.nextflow.io/) | ≥ 24.04.0 | Requires Java 11+. 24.04 is the first release with `process.resourceLimits`. |
 | [Singularity](https://sylabs.io/) / [Apptainer](https://apptainer.org/) | ≥ 3.8 | Recommended on HPC |
 | [Docker](https://www.docker.com/) | any | For local runs |
 | conda / mamba | any | Alternative to containers |
@@ -70,22 +70,31 @@ are packaged in containers — no manual tool installation needed.
 
 ```bash
 # Clone
-git clone https://github.com/your-org/lorerna.git
-cd lorerna
+git clone https://github.com/dariusng28-collab/LoReRNA.git
+cd LoReRNA
 
 # Install Nextflow (skip if already installed)
 curl -s https://get.nextflow.io | bash
 mv nextflow ~/bin/
 
 # Verify
-nextflow -version   # should be >= 23.10.0
+nextflow -version   # should be >= 24.04.0
 ```
 
 Containers are pulled automatically on first run. To pre-pull onto an HPC cluster:
 
 ```bash
-singularity pull docker://your-dockerhub/lorerna:1.1.0
-singularity pull docker://your-dockerhub/miser:1.1.0
+singularity pull docker://dariusng28/lorerna:1.1.0
+singularity pull docker://dariusng28/miser:1.1.0
+```
+
+`singularity pull` unpacks the image layers into a temporary directory before
+writing the final `.img`. If that fails with a "no such file or directory" error
+on the build path, `SINGULARITY_TMPDIR` is pointing somewhere that does not exist
+on the node you are running from — set it to somewhere with a few GB free:
+
+```bash
+export SINGULARITY_TMPDIR=/tmp
 ```
 
 ---

@@ -336,7 +336,7 @@ cd LoReRNA
 
 ```bash
 nextflow -version
-# Must be >= 23.10.0
+# Must be >= 24.04.0 (first release with process.resourceLimits)
 ```
 
 ### Step 17 — Run pre-flight checks
