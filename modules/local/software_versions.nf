@@ -31,6 +31,11 @@ process SOFTWARE_VERSIONS {
     tag "all_samples"
     label 'process_single'
 
+    // As with MISER_VERSION: reporting versions must never abort an analysis.
+    // If this is skipped, MULTIQC simply renders without the Software Versions
+    // section — every other input to the report is unaffected.
+    errorStrategy 'ignore'
+
     input:
     path miser_versions   // versions_miser.txt from MISER_VERSION
 

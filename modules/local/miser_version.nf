@@ -27,6 +27,13 @@ process MISER_VERSION {
     tag "miser_container"
     label 'process_single'
 
+    // A provenance report must never abort an analysis. This process is the
+    // only thing in the pipeline that instantiates the MisER image purely to
+    // read version strings, so anything environmental — an image pull failure,
+    // an unwritable scratch path — would otherwise take the whole run down
+    // with it. On failure the report simply omits this container.
+    errorStrategy 'ignore'
+
     output:
     path "versions_miser.txt", emit: versions
 
