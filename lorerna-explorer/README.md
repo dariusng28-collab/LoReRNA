@@ -42,6 +42,10 @@ R 4.1 or later, and:
 | plotly | 4.10.0 |
 | DT | 0.20 |
 | readr | 2.0.0 |
+| data.table | 1.14.0 |
+
+`Rsamtools` (Bioconductor) is optional, and needed only to load a reference
+annotation into the Structure tab.
 
 `bslib >= 0.6` is a hard requirement: `page_sidebar()`, `accordion()`,
 `layout_columns()` and `full_screen` are not available before that release. A
@@ -50,7 +54,12 @@ unsatisfied dependency produces an actionable message rather than a missing
 function error.
 
 ```r
-install.packages(c("shiny", "bslib", "dplyr", "tidyr", "ggplot2", "plotly", "DT", "readr"))
+install.packages(c("shiny", "bslib", "dplyr", "tidyr", "ggplot2", "plotly",
+                   "DT", "readr", "data.table"))
+
+# optional, for the reference annotation track
+if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+BiocManager::install("Rsamtools")
 ```
 
 ## Usage
@@ -130,6 +139,97 @@ DGE or DTE fold changes on the same data. A fixed `|log2FC|` default would
 return nothing for DTU while being far too permissive for DGE, so thresholds
 are rescaled from the loaded table whenever the active analysis changes.
 
+**The DTU `log2FC` column is not a fold change.** swish computes
+`median over inferential replicates of log2((mean_B + pc) - log2(mean_A + pc))`
+with `pc = 5` (fishpond, `getLog2FC`). DTU runs that on `isoformProportions()`
+output, whose values lie in [0, 1], so the pseudocount dominates entirely and
+the statistic is confined to ±log2(6/5) = ±0.263. In one validation run the
+observed range across 34,396 transcripts was −0.222 to 0.244, with nothing
+outside that bound.
+
+Read as a fold change it badly understates the effect. Inverting it, with `L`
+the reported value and `p` the usage before the change,
+
+```
+p_after − p_before = (2^L − 1) × (p_before + 5)
+```
+
+`p_before` is not recoverable from summary tables, only bounded to [0, 1], so
+the shift is bracketed to about ten percentage points. The structure panel
+reports that estimate in percentage points and labels it as an estimate. On one
+worked example it gives −75 and +84 points against a true −78 and +78 solved
+from the DTE fold changes — a near-total switch that the raw column reports as
+−0.212 and +0.204.
+
+**Reciprocal genes.** A gene counts as reciprocal when, among its own
+transcripts passing the current filters, at least one moves up and at least one
+moves down. It is computed per analysis, depends on the threshold settings, and
+shows `n/a` for DGE, where a gene has a single feature and cannot be reciprocal.
+
+It means different things for the two transcript-level analyses:
+
+- For **DTU** it measures statistical power, not biology. Isoform proportions
+  are compositional and sum to 1, so every DTU-significant gene has a switch by
+  construction — a gain somewhere is a loss elsewhere. Reciprocal identifies
+  those where both halves independently cleared the threshold. In one
+  validation run, *all* 78 DTU-significant genes not flagged reciprocal had an
+  opposite-direction isoform below threshold. Filtering on it narrows the set
+  to the cleanest switches; it does not separate switching genes from
+  non-switching ones.
+- For **DTE** it is more informative, since abundances are not compositionally
+  constrained. But it favours genes with more isoforms: in the same run 0% of
+  single-isoform genes were flagged, rising to 32% of genes with eleven or
+  more, largely by arithmetic.
+
+## Transcript structures
+
+Uploading `gffcmp.combined.gtf` from `results/04_oarfish_reference/` adds a
+Structure tab, which draws the exon layout of every transcript at the selected
+gene's locus. That file uses the same `TCONS_` identifiers as the results
+tables, so the join needs no mapping layer.
+
+Introns are compressed to a fixed width, never stretched. At a typical locus
+only about a tenth of the span is exonic, so on raw coordinates most exons
+render sub-pixel and structural differences are invisible; compression leaves
+exon widths at their true relative scale.
+
+Every transcript is compared against one baseline, and marks describe that
+comparison: a solid box is an exon with no counterpart in the baseline, a
+dashed outline is an internal exon whose boundary differs, and a gap is a
+missing exon. Terminal exon boundaries are never marked — the 5' and 3' ends of
+long-read models are unreliable enough that flagging them would present
+artefact as biology.
+
+### Reference annotation
+
+Uploading a bgzip-compressed, tabix-indexed reference GTF alongside its `.tbi`
+adds an annotation block below the assembled transcripts, and makes the
+baseline the annotation's MANE Select transcript rather than one of your own
+isoforms. Reference transcripts are drawn unfilled and carry no DTU status,
+because they are annotation rather than measurement, and each is marked as
+detected or not detected in your data.
+
+The annotation is queried by region the way a genome browser does it, so only
+the locus on screen is read and the file is never parsed in full. GENCODE v49
+compresses from 3.1 GB to 126 MB with a 0.3 MB index, and a locus query returns
+in about 10 ms. To prepare one:
+
+```bash
+bgzip -c gencode.v49.annotation.sorted.gtf > gencode.v49.sorted.gtf.gz
+tabix -p gff gencode.v49.sorted.gtf.gz
+```
+
+Both files must be uploaded together; the index alone is not enough, and the
+annotation without its index is refused with a message saying so.
+
+Where a locus has no reference gene of the same name — a novel `XLOC` locus,
+for instance — any overlapping annotation is still drawn for context, but it is
+*not* used as the baseline, since comparing assembled isoforms against an
+unrelated gene's model would be meaningless. The figure says when this happens.
+
+`Rsamtools` is a soft dependency. Without it the reference controls are hidden
+and every other part of the application behaves unchanged.
+
 ## Performance
 
 The result tables are large enough that a naive implementation becomes
@@ -195,9 +295,13 @@ In the running application:
 - Sample-level counts are not read, so the gene panel shows summary statistics
   rather than the underlying points.
 - No outbound links to Ensembl or other transcript annotation resources.
-- No automated test suite in the repository. The loading functions are written
-  without a Shiny dependency specifically so that they can be covered by
-  `testthat`, and the reactive graph is exercisable with `shiny::testServer()`.
+- One contrast, one combined GTF and one reference annotation at a time.
+- Usage in percentage points is an estimate, not a measurement — the underlying
+  proportions are not recoverable from summary tables. See the DTU note above.
+- No automated test suite in the repository. The loading and structure
+  functions are written without a Shiny dependency specifically so that they
+  can be covered by `testthat`, and the reactive graph is exercisable with
+  `shiny::testServer()`.
 
 The server logic has been checked headlessly against real pipeline output:
 file ingestion and analysis assignment, precedence when two files claim the
@@ -206,11 +310,20 @@ subsampling behaviour, the cross-analysis gene panel including genes absent
 from one or more tables, alias resolution for limma and DESeq2 column
 spellings, tables with no expression column, and unreadable input.
 
-Not covered by those checks, and therefore unverified: the rendered ggplot in
-the gene panel, including faceting when only one analysis is loaded and the
-monospace axis font, which is device-dependent; selection by clicking a point
-in the overview plot or a row in either table, which depends on browser-side
-events; and any platform other than Windows.
+The structure panel has been checked further. Drawn exon coordinates were
+compared against the raw GTF through two separately written parsers across 500
+randomly sampled genes and 21,795 exons, with no mismatch in exon counts,
+coordinates, strand, preserved exon widths or the monotonicity of the
+compressed coordinate map. Every gene key in the GTF — 35,762 of them — was
+swept for structural invariants: exactly one baseline per locus, never spanning
+more than one chromosome after locus selection, compression never reducing the
+exonic fraction, and the transcript cap always honoured.
+
+Not covered by those checks, and therefore unverified: selection by clicking a
+point in the overview plot or a row in either table, which depends on
+browser-side events; the monospace axis font, which is device-dependent; and
+any platform other than Windows and the Linux containers the hosted copy runs
+on.
 
 ## Credits
 
