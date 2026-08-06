@@ -34,8 +34,6 @@ process SWISH {
     tag "all_samples"
     label 'process_high'   // 8 CPUs, 32 GB — overridden by site config
 
-    publishDir "${params.outdir}/06_swish", mode: params.publish_mode
-
     input:
     path quant_files        // collected: all *.quant files (staged flat)
     path infrep_files       // collected: all *.infreps.pq files (staged flat)
@@ -135,5 +133,14 @@ process SWISH {
     echo "  PDFs : \$(ls plots/*.pdf   | wc -l) files"
     echo "  Log  : \$(ls logs/*.log 2>/dev/null | head -1)"
     echo "========================================"
+    """
+
+    stub:
+    """
+    mkdir -p results plots logs
+    touch results/DTE_full_results.csv results/DTU_full_results.csv results/DGE_full_results.csv \\
+          results/DTE_all_significant.csv results/DTU_all_significant.csv results/DGE_all_significant.csv
+    touch plots/DTE_plots.pdf plots/DTU_plots.pdf plots/DGE_plots.pdf
+    touch logs/swish_run.log logs/swish_summary_mqc.tsv conditions.csv
     """
 }

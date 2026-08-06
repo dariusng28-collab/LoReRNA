@@ -1,0 +1,21 @@
+# Nextflow execution artefacts
+.nextflow*
+work/
+results/
+test_results/
+*_results/
+
+# Generated or vendored content
+containers/*.yml
+*.sif
+*.img
+
+# Data
+*.bam
+*.bai
+*.fa
+*.fasta
+*.gtf
+*.bed
+*.bed12
+*.db

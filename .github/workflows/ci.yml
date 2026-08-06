@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'release/**']
+  pull_request:
+    branches: [main]
+
+# Cancel a running job when the same ref is pushed again.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Pin to the Nextflow version the pipeline is validated against (matches the
+  # HPC's nf-env), so CI tests what you actually run — not bleeding-edge.
+  NXF_VER: 25.04.7
+  LORERNA_IMG: dariusng28/lorerna:1.1.0
+  MISER_IMG: dariusng28/miser:1.1.0
+
+jobs:
+  lint:
+    name: Lint — config + shell + R syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Nextflow
+        run: |
+          curl -s https://get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+          nextflow -version
+
+      - name: Nextflow config resolves for every profile
+        run: |
+          for p in docker singularity conda test stub standard; do
+            echo "== profile: $p =="
+            nextflow config main.nf -profile "$p" > /dev/null
+          done
+
+      - name: Shell syntax (bash -n on every tracked *.sh)
+        run: |
+          fail=0
+          for f in $(git ls-files '*.sh'); do
+            bash -n "$f" || { echo "SYNTAX ERROR: $f"; fail=1; }
+          done
+          exit $fail
+
+      - name: R syntax (parse every bin/*.R inside the lorerna container)
+        run: |
+          for f in bin/*.R; do
+            echo "parse: $f"
+            docker run --rm -v "$PWD":/w -w /w "$LORERNA_IMG" \
+              Rscript -e "invisible(parse(file='$f'))"
+          done
+
+  # Checks the repository against nf-core conventions. The exclusions in
+  # .nf-core.yml are what make this meaningful rather than noisy: LoReRNA
+  # follows nf-core structure but is not hosted under the nf-core organisation,
+  # so their CI, branding and release infrastructure checks do not apply.
+  # Running it here means nobody has to install nf-core tools locally.
+  nf-core-lint:
+    name: nf-core lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Nextflow
+        run: |
+          curl -s https://get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Pinned for the same reason as NXF_VER: an unpinned install means a new
+      # nf-core/tools release can fail CI on a commit that changed nothing.
+      # Bump deliberately, not by surprise.
+      - name: Install nf-core tools
+        run: pip install 'nf-core==4.1.0'
+
+      - name: Lint
+        run: nf-core pipelines lint --dir .
+
+  container-contract:
+    name: Container CLI + R-package contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # Directly catches breaking tool upgrades (e.g. oarfish dropping a flag)
+      # before they can reach a run. No test dataset required.
+      - name: Assert tool CLIs and R packages match the pipeline's usage
+        run: bash test/container_cli_contract.sh "$LORERNA_IMG" "$MISER_IMG"
+
+  # Exercises the full DAG wiring with `-stub-run` on placeholder inputs.
+  # Every module has a `stub:` block (touch/mkdir only), so this catches
+  # channel / emit / publishDir plumbing errors without real tools or data.
+  stub-run:
+    name: DAG wiring (-stub-run)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Nextflow
+        run: |
+          curl -s https://get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+          nextflow -version
+
+      - name: Create placeholder inputs
+        run: bash test/make_stub_inputs.sh
+
+      - name: Stub-run the whole pipeline
+        run: nextflow run main.nf -profile stub -stub-run

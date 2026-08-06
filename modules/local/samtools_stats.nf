@@ -22,8 +22,6 @@ process SAMTOOLS_STATS {
     tag  "${meta.id}"
     label 'process_low'
 
-    publishDir "${params.outdir}/07_multiqc/samtools", mode: params.publish_mode
-
     input:
     tuple val(meta), path(sorted_bam), path(bai)
 
@@ -49,5 +47,10 @@ process SAMTOOLS_STATS {
     # Quick summary to stdout
     echo "Flagstat summary:"
     grep 'mapped (' "${meta.id}_flagstat.txt" | head -2 || true
+    """
+
+    stub:
+    """
+    touch ${meta.id}_flagstat.txt ${meta.id}_idxstats.txt ${meta.id}_stats.txt
     """
 }

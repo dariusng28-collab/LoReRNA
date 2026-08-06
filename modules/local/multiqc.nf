@@ -23,8 +23,6 @@ process MULTIQC {
     tag "all_samples"
     label 'process_medium'
 
-    publishDir "${params.outdir}/07_multiqc", mode: params.publish_mode
-
     input:
     path multiqc_files    // collected: all QC files to aggregate
     path multiqc_config   // multiqc_config.yml
@@ -64,5 +62,11 @@ process MULTIQC {
 
     echo "MultiQC report: \$(ls -lh multiqc_report.html | awk '{print \$5}')"
     echo "SUCCESS: multiqc_report.html"
+    """
+
+    stub:
+    """
+    mkdir -p multiqc_report_data multiqc_plots
+    touch multiqc_report.html
     """
 }

@@ -43,9 +43,6 @@ process ISOQUANT {
     tag "${meta.id}"
     label 'process_very_high'   // cpus=4, memory=64 GB — see conf/sge.config
 
-    publishDir "${params.outdir}/03_isoquant/${meta.id}", mode: params.publish_mode,
-        saveAs: { filename -> filename.tokenize('/')[-1] }   // flatten subdir on publish
-
     input:
     tuple val(meta), path(sorted_bam), path(bai)   // from SAMTOOLS_SORT_INDEX
     path  genome_fasta                              // reference_fasta param
@@ -118,5 +115,14 @@ process ISOQUANT {
     cp "${sample_id}/${sample_id}/${sample_id}.transcript_models.gtf" "${sample_id}.transcript_models.gtf"
 
     echo "SUCCESS: IsoQuant finished for ${sample_id}"
+    """
+
+    stub:
+    """
+    mkdir -p ${meta.id}/${meta.id}
+    touch ${meta.id}/${meta.id}/${meta.id}.transcript_counts.tsv \\
+          ${meta.id}/${meta.id}/${meta.id}.gene_counts.tsv \\
+          ${meta.id}/${meta.id}/${meta.id}.read_assignments.tsv.gz \\
+          ${meta.id}.transcript_models.gtf
     """
 }

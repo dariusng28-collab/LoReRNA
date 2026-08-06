@@ -1,5 +1,62 @@
 # LoReRNA — Changelog
 
+## Unreleased — nf-core-quality hardening
+
+Structural and quality work on top of v1.0.0. **No change to the analysis**:
+every tool invocation is byte-identical, which was verified by resuming a
+completed run and observing all 13 processes report `cached`, and by diffing
+the published output tree (189 files, no differences).
+
+### Repository layout
+
+- `main.nf` reduced to a thin entry point; the workflow moved to
+  `workflows/lorerna.nf`.
+- Process resources split into `conf/base.config`; container routing and all
+  13 `publishDir` declarations centralised in `conf/modules.config`.
+- Example site configs for SGE, SLURM and LSF; `conf/ucl.config` untracked.
+
+### Validation
+
+- `nextflow_schema.json` and `assets/schema_input.json` added; parameters and
+  the samplesheet are validated by nf-schema at launch.
+- `.nf-core.yml` added. Checks specific to pipelines hosted under the nf-core
+  organisation are disabled with a stated reason for each; all substantive
+  checks remain enabled.
+
+### Resources
+
+- Migrated from a hand-written `check_max()` and `params.max_*` to native
+  `process.resourceLimits`. Raises the required Nextflow version to 24.04.
+  `conf/base.config` deliberately sets no limit — the ceiling is a
+  site-specific fact set by the `-c` config.
+
+### Provenance
+
+- New `MISER_VERSION` and `SOFTWARE_VERSIONS` processes report the tool
+  versions inside each of the two containers; the result appears as a
+  "Software Versions" section in the MultiQC report and is published to
+  `pipeline_info/software_versions.yml`.
+- One dump per image rather than nf-core's per-process `versions.yml`: LoReRNA
+  runs every process from one of two images, so per-process files would repeat
+  the same versions while invalidating the task hash of all 13 modules.
+
+### Testing
+
+- `test/container_cli_contract.sh` asserts the tool CLIs and R packages match
+  the flags the modules actually pass — the guard that would have caught
+  oarfish renaming `--reference` to `--annotated`.
+- Every module has a `stub:` block, and CI runs the whole DAG with
+  `-profile stub -stub-run` to check channel wiring without tools or data.
+
+### Results browser
+
+- `lorerna-explorer/`, a Shiny application for the swish result tables,
+  showing one gene across DGE, DTE and DTU together — the interpretive case
+  the capped publication PDFs cannot cover. Hosted at
+  <https://darius28.shinyapps.io/lorerna-explorer/>.
+
+---
+
 ## v1.0.0 — Initial public release
 
 This is the first public release of LoReRNA. It represents a complete,

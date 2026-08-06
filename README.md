@@ -44,6 +44,7 @@ Input BAMs (genome-aligned, e.g. from minimap2)
 - [Samplesheet format](#samplesheet-format)
 - [Parameters](#parameters)
 - [Output structure](#output-structure)
+- [Exploring the results](#exploring-the-results)
 - [Site configuration](#site-configuration)
 - [Building containers](#building-containers)
 - [Validation](#validation)
@@ -55,7 +56,7 @@ Input BAMs (genome-aligned, e.g. from minimap2)
 
 | Dependency | Version | Notes |
 |------------|---------|-------|
-| [Nextflow](https://www.nextflow.io/) | ≥ 23.10.0 | Requires Java 11+ |
+| [Nextflow](https://www.nextflow.io/) | ≥ 24.04.0 | Requires Java 11+. 24.04 is the first release with `process.resourceLimits`. |
 | [Singularity](https://sylabs.io/) / [Apptainer](https://apptainer.org/) | ≥ 3.8 | Recommended on HPC |
 | [Docker](https://www.docker.com/) | any | For local runs |
 | conda / mamba | any | Alternative to containers |
@@ -69,22 +70,31 @@ are packaged in containers — no manual tool installation needed.
 
 ```bash
 # Clone
-git clone https://github.com/your-org/lorerna.git
-cd lorerna
+git clone https://github.com/dariusng28-collab/LoReRNA.git
+cd LoReRNA
 
 # Install Nextflow (skip if already installed)
 curl -s https://get.nextflow.io | bash
 mv nextflow ~/bin/
 
 # Verify
-nextflow -version   # should be >= 23.10.0
+nextflow -version   # should be >= 24.04.0
 ```
 
 Containers are pulled automatically on first run. To pre-pull onto an HPC cluster:
 
 ```bash
-singularity pull docker://your-dockerhub/lorerna:1.1.0
-singularity pull docker://your-dockerhub/miser:1.1.0
+singularity pull docker://dariusng28/lorerna:1.1.0
+singularity pull docker://dariusng28/miser:1.1.0
+```
+
+`singularity pull` unpacks the image layers into a temporary directory before
+writing the final `.img`. If that fails with a "no such file or directory" error
+on the build path, `SINGULARITY_TMPDIR` is pointing somewhere that does not exist
+on the node you are running from — set it to somewhere with a few GB free:
+
+```bash
+export SINGULARITY_TMPDIR=/tmp
 ```
 
 ---
@@ -328,6 +338,36 @@ results/
 
 ---
 
+## Exploring the results
+
+`06_swish/publication_plots/` covers the top `--swish_top_n` features (default
+30) and writes DTE, DTU and DGE to separate PDFs. For the full tables, or to
+inspect one gene across all three analyses at once, `lorerna-explorer/`
+contains a Shiny application that reads the CSVs in `06_swish/results/`:
+
+A hosted copy runs at
+**<https://darius28.shinyapps.io/lorerna-explorer/>** and needs nothing
+installed.
+
+To run it yourself:
+
+```bash
+Rscript -e 'shiny::runApp("lorerna-explorer")'
+```
+
+Or without a local checkout:
+
+```bash
+Rscript -e 'shiny::runGitHub("LoReRNA", "dariusng28-collab", ref = "release/container-v1.1.0", subdir = "lorerna-explorer")'
+```
+
+Run locally it reads local files and nothing leaves your machine; a hosted copy
+processes uploads on its host's servers. Requirements, input format and known
+limitations are documented in
+[`lorerna-explorer/README.md`](lorerna-explorer/README.md).
+
+---
+
 ## Site configuration
 
 The pipeline separates scheduler-specific settings into `conf/` files.
@@ -500,6 +540,20 @@ nextflow run main.nf \
 ---
 
 ## Troubleshooting
+
+### Container image fails to pull
+
+Nextflow pulls both images automatically on first use, so this normally needs
+no action. It fails when the environment points Singularity's build scratch at
+a path that does not exist on the machine running the pull — typically a
+cluster that sets `SINGULARITY_TMPDIR` to node-local scratch, which exists on
+compute nodes but not on the head node.
+
+| Symptom | Likely cause | Fix |
+|---------|-------------|-----|
+| `failed to create build parent dir: stat /<path>: no such file or directory` | `SINGULARITY_TMPDIR` points somewhere absent on this node | `export SINGULARITY_TMPDIR=/tmp` (needs a few GB free) |
+| Pull times out inside a scheduled job | Several tasks racing to pull the same uncached image | Pre-pull once before launching: `singularity pull docker://dariusng28/lorerna:1.1.0` |
+| `Disk quota exceeded` during pull | Build scratch on a full filesystem | Point `SINGULARITY_TMPDIR` at a filesystem with ~5 GB free |
 
 ### MisER: "Not enough scratch space"
 

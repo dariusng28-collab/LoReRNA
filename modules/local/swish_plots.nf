@@ -24,8 +24,6 @@ process SWISH_PLOTS {
     tag "all_samples"
     label 'process_medium'
 
-    publishDir "${params.outdir}/06_swish/publication_plots", saveAs: { it.replaceFirst("pub_plots/", "") }, mode: params.publish_mode
-
     input:
     path csv_results           // collected: all *.csv from SWISH results dir
     path quant_files           // collected: all *.quant files (flat-staged)
@@ -75,5 +73,12 @@ process SWISH_PLOTS {
         --plots_dir    pub_plots \\
         --alpha        ${params.swish_alpha} \\
         --top_n        ${params.swish_top_n}
+    """
+
+    stub:
+    """
+    mkdir -p pub_plots
+    touch pub_plots/DTE_publication_plots.pdf pub_plots/DTU_publication_plots.pdf \\
+          pub_plots/DGE_publication_plots.pdf pub_plots/summary_panel.pdf
     """
 }

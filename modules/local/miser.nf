@@ -3,8 +3,6 @@ process MISER {
     tag "${meta.id}"
     label 'process_miser'
 
-    publishDir "${params.outdir}/01_miser", mode: params.publish_mode
-
     input:
     tuple val(meta), path(bam)
     path  genome_fasta
@@ -116,5 +114,10 @@ process MISER {
     echo "SUCCESS: ${sample_id}.miser.bam"
 
     } 2>&1 | tee "${sample_id}.miser.log"
+    """
+
+    stub:
+    """
+    touch ${meta.id}.miser.bam ${meta.id}.missed_small.bed ${meta.id}.miser.log
     """
 }

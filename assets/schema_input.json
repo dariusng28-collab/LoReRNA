@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/dariusng28-collab/LoReRNA/main/assets/schema_input.json",
+  "title": "LoReRNA samplesheet schema",
+  "description": "Schema for the file provided with params.samplesheet",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "sample_name": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9._-]+$",
+        "errorMessage": "Sample name must contain only letters, numbers, dots, underscores or hyphens (no spaces)",
+        "meta": ["id"]
+      },
+      "condition": {
+        "type": "string",
+        "pattern": "^\\S+$",
+        "errorMessage": "Condition must be provided and cannot contain spaces",
+        "meta": ["condition"]
+      },
+      "bam": {
+        "type": "string",
+        "format": "file-path",
+        "exists": true,
+        "pattern": "^\\S+\\.bam$",
+        "errorMessage": "BAM file must be provided, cannot contain spaces and must have the extension '.bam'"
+      },
+      "pair": {
+        "type": "string",
+        "pattern": "^\\S+$",
+        "errorMessage": "Pair identifier cannot contain spaces",
+        "meta": ["pair"]
+      },
+      "batch": {
+        "type": "string",
+        "pattern": "^\\S+$",
+        "errorMessage": "Batch identifier cannot contain spaces",
+        "meta": ["batch"]
+      }
+    },
+    "required": ["sample_name", "condition", "bam"]
+  }
+}

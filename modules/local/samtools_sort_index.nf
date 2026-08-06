@@ -25,8 +25,6 @@ process SAMTOOLS_SORT_INDEX {
     tag "${meta.id}"
     label 'process_sort'    // cpus=4, memory=16 GB — see nextflow.config
 
-    publishDir "${params.outdir}/02_sorted_bam", mode: params.publish_mode
-
     input:
     tuple val(meta), path(bam)
 
@@ -67,5 +65,10 @@ process SAMTOOLS_SORT_INDEX {
 
     echo "SUCCESS: ${sample_id}.miser.sorted.bam + .bai"
     echo "Output size: \$(ls -lh ${sample_id}.miser.sorted.bam | awk '{print \$5}')"
+    """
+
+    stub:
+    """
+    touch ${meta.id}.miser.sorted.bam ${meta.id}.miser.sorted.bam.bai
     """
 }

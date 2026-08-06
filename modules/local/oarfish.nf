@@ -57,8 +57,6 @@ process OARFISH {
     tag "${meta.id}"
     label 'process_very_high'   // cpus=4, memory=64 GB, time=72 h — see conf/sge.config
 
-    publishDir "${params.outdir}/05_oarfish/${meta.id}", mode: params.publish_mode
-
     input:
     tuple val(meta), path(clean_bam)   // from CLEAN_BAM.out.clean_bam
     path  merged_fa                    // from PREPARE_OARFISH_REFERENCE.out.merged_fa
@@ -134,5 +132,10 @@ process OARFISH {
     echo "  quant lines    : \$(wc -l < ${sample_id}.quant)"
     echo "  infreps size   : \$(ls -lh ${sample_id}.infreps.pq | awk '{print \$5}')"
     echo "========================================"
+    """
+
+    stub:
+    """
+    touch ${meta.id}.quant ${meta.id}.infreps.pq ${meta.id}.meta_info.json ${meta.id}.ambig_info.tsv
     """
 }

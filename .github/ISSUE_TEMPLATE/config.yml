@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question or usage help
+    url: https://github.com/dariusng28-collab/LoReRNA/discussions
+    about: Ask how to run LoReRNA, interpret its output, or configure it for your cluster.
+  - name: Nextflow documentation
+    url: https://www.nextflow.io/docs/latest/
+    about: For questions about Nextflow itself rather than this pipeline.

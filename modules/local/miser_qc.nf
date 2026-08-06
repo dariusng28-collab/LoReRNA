@@ -25,8 +25,6 @@ process MISER_QC {
     tag "${meta.id}"
     label 'process_low'
 
-    publishDir "${params.outdir}/01_miser_qc/${meta.id}", mode: params.publish_mode
-
     input:
     tuple val(meta), path(micro_exon_bed)
     path script   // miser_qc_summary.py — staged from bin/ via channel in main.nf
@@ -45,5 +43,10 @@ process MISER_QC {
         --outdir . \\
         ${min_support_arg} \\
         ${all_events_arg}
+    """
+
+    stub:
+    """
+    touch ${meta.id}.rescued_microexons.tsv ${meta.id}.rescued_microexons.bed ${meta.id}.rescue_metrics.tsv
     """
 }

@@ -36,8 +36,6 @@ process PREPARE_OARFISH_REFERENCE {
     tag "all_samples"
     label 'process_high'   // nextflow.config: 8 CPUs, 32 GB
 
-    publishDir "${params.outdir}/04_oarfish_reference", mode: params.publish_mode
-
     input:
     path   gtf_files         // collected: all *.transcript_models.gtf
     path   genome_fasta
@@ -165,5 +163,10 @@ process PREPARE_OARFISH_REFERENCE {
     echo " Transcriptome : merged_expressed_transcripts.fa (\${N_FASTA} sequences)"
     echo " tx2gene       : tx2gene.tsv (\${N_TX} mappings)"
     echo "============================================"
+    """
+
+    stub:
+    """
+    touch merged_expressed_transcripts.fa tx2gene.tsv gffcmp.combined.gtf gffcmp.stats
     """
 }

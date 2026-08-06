@@ -27,9 +27,6 @@ process CLEAN_BAM {
     tag "${meta.id}"
     label 'process_sort'    // cpus=4, memory=16 GB — samtools view is I/O-bound
 
-    publishDir "${params.outdir}/02_sorted_bam", mode: params.publish_mode,
-        pattern: "*.clean.bam"
-
     input:
     tuple val(meta), path(sorted_bam), path(bai)
 
@@ -82,5 +79,10 @@ process CLEAN_BAM {
     echo "Reads out : \${READS_OUT} (after -F 2304 filter)"
     echo "Clean BAM : \$(ls -lh ${sample_id}.clean.bam | awk '{print \$5}')"
     echo "SUCCESS: ${sample_id}.clean.bam"
+    """
+
+    stub:
+    """
+    touch ${meta.id}.clean.bam
     """
 }
