@@ -78,11 +78,8 @@ Rscript -e 'shiny::runApp("lorerna-explorer")'
 Directly from GitHub, without cloning:
 
 ```bash
-Rscript -e 'shiny::runGitHub("LoReRNA", "dariusng28-collab", ref = "release/container-v1.1.0", subdir = "lorerna-explorer")'
+Rscript -e 'shiny::runGitHub("LoReRNA", "dariusng28-collab", subdir = "lorerna-explorer")'
 ```
-
-The `ref` argument is required while the application resides on the release
-branch, and can be dropped once that branch is merged to `main`.
 
 Results are then loaded through the sidebar.
 

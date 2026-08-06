@@ -358,7 +358,7 @@ Rscript -e 'shiny::runApp("lorerna-explorer")'
 Or without a local checkout:
 
 ```bash
-Rscript -e 'shiny::runGitHub("LoReRNA", "dariusng28-collab", ref = "release/container-v1.1.0", subdir = "lorerna-explorer")'
+Rscript -e 'shiny::runGitHub("LoReRNA", "dariusng28-collab", subdir = "lorerna-explorer")'
 ```
 
 Run locally it reads local files and nothing leaves your machine; a hosted copy
